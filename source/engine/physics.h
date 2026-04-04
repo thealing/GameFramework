@@ -199,7 +199,7 @@ struct Physics_Joint
 
 	List_Node* node_in_world;
 
-	double total_impulse;
+	Vector total_impulse;
 };
 
 struct Physics_Collision
