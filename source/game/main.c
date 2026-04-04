@@ -589,11 +589,11 @@ void update(double delta_time)
 
 void render()
 {
-	graphics_save_transform();
-
 	s_camera = (Rect){ 0, 0, fmax(s_width / s_height, 1) * 1100, fmax(s_height / s_width, 1) * 1100 };
 
 	graphics_set_camera(&s_camera);
+
+	graphics_save_transform();
 
 	graphics_translate(vector_create(s_camera.max.x / 2, s_camera.max.y / 2));
 
