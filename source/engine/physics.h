@@ -16,10 +16,6 @@
 
 #define PHYSICS_POSITION_ITERATION_COUNT 4
 
-#define PHYSICS_USE_WARM_STARTING true
-
-#define PHYSICS_BACKFEED_POSITIONS true
-
 typedef enum Physics_Body_Type Physics_Body_Type;
 
 typedef enum Physics_Joint_Type Physics_Joint_Type;
@@ -237,7 +233,7 @@ Physics_World* physics_world_create();
 
 void physics_world_destroy(Physics_World* world);
 
-void physics_world_step(Physics_World* world, double delta_time);
+void physics_world_step(Physics_World* world, double delta_time, bool warm_starting, bool pbd);
 
 Physics_Body* physics_body_create(Physics_World* world, Physics_Body_Type type);
 

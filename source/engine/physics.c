@@ -74,7 +74,7 @@ void physics_world_destroy(Physics_World* world)
 	free(world);
 }
 
-void physics_world_step(Physics_World* world, double delta_time)
+void physics_world_step(Physics_World* world, double delta_time, bool warm_starting, bool pbd)
 {
 	for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
 	{
@@ -301,7 +301,7 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 					collisions[i].inverse_tangent_mass = 1 / (tangent_inverse_mass_1 + tangent_inverse_mass_2);
 
-					if (PHYSICS_USE_WARM_STARTING)
+					if (warm_starting)
 					{
 						collisions[i].key = (Map_Key)collider_1->index | (Map_Key)collider_2->index << 30 | (Map_Key)collisions[i].second << 60;
 
@@ -552,7 +552,7 @@ void physics_world_step(Physics_World* world, double delta_time)
 		}
 	}
 
-	if (PHYSICS_BACKFEED_POSITIONS)
+	if (pbd)
 	{
 		for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
 		{
@@ -585,15 +585,20 @@ void physics_world_step(Physics_World* world, double delta_time)
 		physics_body_update_world_transform(body);
 	}
 
-	if (PHYSICS_USE_WARM_STARTING)
+	if (map_size(world->collision_map) > 0)
 	{
 		map_clear(world->collision_map);
+	}
 
+	if (warm_starting)
+	{
 		for (int i = 0; i < collision_count; i++)
 		{
 			map_insert(world->collision_map, collisions[i].key, i);
 		}
 	}
+
+	world->collision_count = collision_count;
 
 	world->elapsed_time += delta_time;
 }

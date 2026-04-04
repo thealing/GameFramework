@@ -217,6 +217,11 @@ void map_destroy(Map* map)
 	free(map);
 }
 
+Count map_size(Map* map)
+{
+	return map->total_count - map->deleted_count;
+}
+
 void map_insert(Map* map, Map_Key key, Map_Value value)
 {
 	_map_grow(map);

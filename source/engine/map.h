@@ -24,6 +24,8 @@ Map* map_create();
 
 void map_destroy(Map* map);
 
+size_t map_size(Map* map);
+
 void map_insert(Map* map, Map_Key key, Map_Value value);
 
 bool map_get(Map* map, Map_Key key, Map_Value* value);

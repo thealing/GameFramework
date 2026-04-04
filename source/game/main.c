@@ -44,6 +44,10 @@ enum
 
 	BUTTON_SIZE,
 
+	BUTTON_WS,
+
+	BUTTON_PBD,
+
 	BUTTON_COUNT
 };
 
@@ -52,6 +56,10 @@ static Button* s_buttons[BUTTON_COUNT];
 static int s_size = 2;
 
 static bool s_running = true;
+
+static bool s_ws = true;
+
+static bool s_pbd = true;
 
 Vector get_mouse_world_position()
 {
@@ -129,6 +137,18 @@ int main()
 	s_buttons[BUTTON_RESTART] = button_create("RESTART", vector_create(0, 0), vector_create(140, 50));
 
 	s_buttons[BUTTON_SIZE] = button_create("SMALL", vector_create(0, 0), vector_create(140, 50));
+
+	s_buttons[BUTTON_WS] = button_create("WS", vector_create(0, 0), vector_create(60, 50));
+
+	s_buttons[BUTTON_WS]->toggle = true;
+
+	s_buttons[BUTTON_WS]->clicked = s_ws;
+
+	s_buttons[BUTTON_PBD] = button_create("PBD", vector_create(0, 0), vector_create(60, 50));
+
+	s_buttons[BUTTON_PBD]->toggle = true;
+
+	s_buttons[BUTTON_PBD]->clicked = s_pbd;
 
 	while (window_is_open())
 	{
@@ -703,11 +723,23 @@ void update(double delta_time)
 		s_mouse_joint = NULL;
 	}
 
+	s_ws = s_buttons[BUTTON_WS]->clicked;
+
+	s_pbd = s_buttons[BUTTON_PBD]->clicked;
+
+	s_ws ^= input_is_key_pressed('W');
+
+	s_pbd ^= input_is_key_pressed('P');
+
+	s_buttons[BUTTON_WS]->clicked = s_ws;
+
+	s_buttons[BUTTON_PBD]->clicked = s_pbd;
+
 	if (step)
 	{
 		double time_before = get_time();
 
-		physics_world_step(s_world, delta_time);
+		physics_world_step(s_world, delta_time, s_ws, s_pbd);
 
 		s_step_time = get_time() - time_before;
 
@@ -790,6 +822,10 @@ void render()
 	s_buttons[BUTTON_RESTART]->position = vector_create(s_width - 90, s_height - 195);
 
 	s_buttons[BUTTON_SIZE]->position = vector_create(s_width - 90, s_height - 265);
+
+	s_buttons[BUTTON_WS]->position = vector_create(s_width - 130, s_height - 335);
+
+	s_buttons[BUTTON_PBD]->position = vector_create(s_width - 50, s_height - 335);
 
 	for (int i = 0; i < BUTTON_COUNT; i++)
 	{
