@@ -498,7 +498,7 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 			double current_depth = collision.depth - (linear_contribution + angular_contribution);
 
-			double collision_impulse = current_depth * PHYSICS_CORRECTION_FACTOR * collisions[i].inverse_normal_mass;
+			double collision_impulse = fmax(current_depth, 0) * PHYSICS_CORRECTION_FACTOR * collisions[i].inverse_normal_mass;
 
 			body_1->position_change = vector_subtract(body_1->position_change, vector_multiply(collision.normal, collision_impulse * body_1->inverse_linear_mass));
 

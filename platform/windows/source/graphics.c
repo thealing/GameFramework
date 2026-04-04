@@ -395,6 +395,14 @@ void graphics_draw_circle(const Circle* circle, bool fill)
 	}
 
 	glEnd();
+
+	glBegin(GL_LINES);
+
+	glVertex2d(circle->center.x, circle->center.y);
+
+	glVertex2d(circle->center.x + circle->radius, circle->center.y);
+
+	glEnd();
 }
 
 void graphics_draw_polygon(const Polygon* polygon, bool fill)

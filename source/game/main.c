@@ -541,6 +541,8 @@ void initialize()
 
 			b->position = vector_add(v, vector_create(r, 0));
 
+			b->angle = M_PI / 2;
+
 			Shape* s = shape_create_circle(vector_create(0, 0), r);
 
 			Physics_Collider* c = physics_collider_create(b, move_shape(s), 1.0);
