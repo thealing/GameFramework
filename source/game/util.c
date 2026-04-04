@@ -1,10 +1,5 @@
 #include "util.h"
 
-Vector create_isotropic_vector(double value)
-{
-	return vector_create(value, value);
-}
-
 Shape* create_rect_shape(Vector min, Vector max)
 {
 	return shape_create_polygon(4, (Vector[]){ { min.x, min.y }, { max.x, min.y }, { max.x, max.y }, { min.x, max.y } });
@@ -80,34 +75,4 @@ void draw_physics_body(const Physics_Body* body)
 void draw_physics_joint(const Physics_Joint* joint)
 {
 	graphics_draw_segment(&(Segment){ joint->world_anchor_1, joint->world_anchor_2 }, false);
-}
-
-void draw_texture_scaled(Vector position, double rotation, double scale)
-{
-	graphics_save_transform();
-
-	graphics_translate(position);
-
-	graphics_rotate(rotation);
-
-	graphics_scale(vector_create(scale, scale));
-
-	graphics_draw_texture();
-
-	graphics_load_transform();
-}
-
-void draw_texture_flipped(Vector position, double rotation, bool flip_horizontally, bool flip_vertically)
-{
-	graphics_save_transform();
-
-	graphics_translate(position);
-
-	graphics_rotate(rotation);
-
-	graphics_scale(vector_create(flip_horizontally ? -1 : 1, flip_vertically ? -1 : 1));
-
-	graphics_draw_texture();
-
-	graphics_load_transform();
 }

@@ -16,6 +16,8 @@ typedef struct Window_Touch_Event Window_Touch_Event;
 
 typedef struct Window_Key_Event Window_Key_Event;
 
+typedef struct Window_Zoom_Event Window_Zoom_Event;
+
 typedef struct Window_Event Window_Event;
 
 typedef struct Window_Event_Node Window_Event_Node;
@@ -38,9 +40,13 @@ enum Window_Event_Type
 
 	WINDOW_EVENT_TOUCH_MOVE,
 
+	WINDOW_EVENT_TOUCH_LEAVE,
+
 	WINDOW_EVENT_KEY_DOWN,
 
 	WINDOW_EVENT_KEY_UP,
+
+	WINDOW_EVENT_ZOOM,
 
 	WINDOW_EVENT_COUNT
 };
@@ -87,6 +93,11 @@ struct Window_Key_Event
 	Window_Key key;
 };
 
+struct Window_Zoom_Event
+{
+	double amount;
+};
+
 struct Window_Event
 {
 	Window_Event_Type type;
@@ -98,6 +109,8 @@ struct Window_Event
 		Window_Touch_Event touch_event;
 
 		Window_Key_Event key_event;
+
+		Window_Zoom_Event zoom_event;
 	};
 };
 

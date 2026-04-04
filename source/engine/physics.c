@@ -39,6 +39,35 @@ void physics_world_destroy(Physics_World* world)
 	free(world);
 }
 
+static int compare_collisions(const void* p, const void* q)
+{
+	Physics_Collision* a = p;
+
+	Physics_Collision* b = q;
+
+	if (a->collider_1 < b->collider_1)
+	{
+		return -1;
+	}
+
+	if (a->collider_1 > b->collider_1)
+	{
+		return 1;
+	}
+
+	if (a->collider_2 < b->collider_2)
+	{
+		return -1;
+	}
+
+	if (a->collider_2 > b->collider_2)
+	{
+		return 1;
+	}
+
+	return a->second - b->second;
+}
+
 void physics_world_step(Physics_World* world, double delta_time)
 {
 	for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
@@ -100,6 +129,13 @@ void physics_world_step(Physics_World* world, double delta_time)
 		}
 
 		collider_node = next;
+	}
+
+	for (List_Node* joint_node = world->joint_list.first; joint_node != NULL; joint_node = joint_node->next)
+	{
+		Physics_Joint* joint = joint_node->item;
+
+		joint->total_impulse = 0;
 	}
 
 	int collision_count_limit = imin(isquare(world->collider_list.size), PHYSICS_COLLISION_COUNT_MAX);
@@ -195,6 +231,8 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 						collisions[collision_count].collision = collision;
 
+						collisions[collision_count].second = true;
+
 						collision_count++;
 					}
 				}
@@ -253,6 +291,52 @@ void physics_world_step(Physics_World* world, double delta_time)
 		collisions[i].inverse_tangent_mass = 1 / (tangent_inverse_mass_1 + tangent_inverse_mass_2);
 	}
 
+	static Physics_Collision* saved_collisions;
+
+	static int saved_collision_count;
+
+	if (PHYSICS_USE_WARM_STARTING)
+	{
+		if (saved_collisions == NULL)
+		{
+			saved_collisions = HEAPALLOC(collision_count_limit * sizeof(Physics_Collision));
+		}
+
+		for (int i = 0; i < collision_count; i++)
+		{
+			Collision collision = collisions[i].collision;
+
+			Physics_Collider* collider_1 = collisions[i].collider_1;
+
+			Physics_Collider* collider_2 = collisions[i].collider_2;
+
+			Physics_Collision* saved_collision = bsearch(collisions + i, saved_collisions, saved_collision_count, sizeof(Physics_Collision), compare_collisions);
+
+			if (saved_collision != NULL)
+			{
+				double collision_impulse = saved_collision->normal_impulse;
+
+				collisions[i].normal_impulse = collision_impulse;
+
+				Physics_Body* body_1 = collider_1->body;
+
+				Physics_Body* body_2 = collider_2->body;
+
+				Vector tangent_1 = vector_left(vector_subtract(collision.point, body_1->position));
+
+				Vector tangent_2 = vector_left(vector_subtract(collision.point, body_2->position));
+
+				body_1->linear_velocity = vector_subtract(body_1->linear_velocity, vector_multiply(collision.normal, collision_impulse * body_1->inverse_linear_mass));
+
+				body_2->linear_velocity = vector_add(body_2->linear_velocity, vector_multiply(collision.normal, collision_impulse * body_2->inverse_linear_mass));
+
+				body_1->angular_velocity -= vector_dot(collision.normal, tangent_1) * collision_impulse * body_1->inverse_angular_mass;
+
+				body_2->angular_velocity += vector_dot(collision.normal, tangent_2) * collision_impulse * body_2->inverse_angular_mass;
+			}
+		}
+	}
+
 	for (int t = 0; t < PHYSICS_VELOCITY_ITERATION_COUNT; t++)
 	{
 		for (int i = 0; i < collision_count; i++)
@@ -280,6 +364,35 @@ void physics_world_step(Physics_World* world, double delta_time)
 			double normal_velocity = vector_dot(collision.normal, relative_velocity);
 
 			double impulse = (collisions[i].target_velocity - normal_velocity) * collisions[i].inverse_normal_mass;
+
+			if (false)
+			{
+				double inverse_mass_1 = body_1->inverse_linear_mass + body_1->inverse_angular_mass * square(vector_dot(collision.normal, tangent_1));
+
+				double inverse_mass_2 = body_2->inverse_linear_mass + body_2->inverse_angular_mass * square(vector_dot(collision.normal, tangent_2));
+
+				double damping_ratio = 0.7;     // 0.0 = bouncy, 1.0 = critical damping
+				double h = delta_time;
+
+				// 1. Calculate the Effective Mass (Constraint Inertia)
+				double effective_mass = 1.0 / (inverse_mass_1 + inverse_mass_2);
+
+				// 2. Use Effective Mass to calculate k and c
+				double omega = 2.0 * 3.1415926535 * 60; // 60Hz is VERY stiff, try 10-15 first
+				double k = effective_mass * (omega * omega);
+				double c = 2.0 * effective_mass * damping_ratio * omega;
+
+				// 3. The rest of the derivation is now physically correct
+				double softness_inv = h * (c + h * k);
+				double gamma = (softness_inv > 0.0) ? 1.0 / softness_inv : 0.0;
+				double beta = (h * k) / (c + h * k);
+
+				// 4. Denominator still uses the INVERSE mass terms + gamma
+				double impulse_denominator = (inverse_mass_1 + inverse_mass_2) + gamma;
+
+				// Note: If normal_velocity is (V2 - V1), use -normal_velocity to push BACK
+				impulse = (-normal_velocity + (beta / h) * collision.depth - gamma * collisions[i].normal_impulse) / impulse_denominator;
+			}
 
 			double total_impulse = fmax(collisions[i].normal_impulse + impulse, 0);
 
@@ -330,7 +443,7 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 			double distance = vector_length(displacement);
 
-			if (distance > 0)
+			if (distance != 0)
 			{
 				Vector normal = vector_divide(displacement, distance);
 
@@ -354,6 +467,34 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 				double correction_impulse = normal_velocity / (inverse_mass_1 + inverse_mass_2);
 
+				if (false)
+				{
+					double damping_ratio = 0.2;     // 0.0 = bouncy, 1.0 = critical damping
+					double h = delta_time;
+
+					// 2. Calculate Spring Constants
+					// omega = 2 * PI * frequency
+					double omega = 2.0 * 3.1415926535 * 20;
+					double k = (inverse_mass_1 + inverse_mass_2) * square(omega);
+					double c = 2.0 * (inverse_mass_1 + inverse_mass_2) * damping_ratio * omega;
+
+					// 3. Convert to Soft Constraint Coefficients (Gamma and Beta)
+					// gamma = 1 / (h * (c + h * k))
+					// beta = h * k / (c + h * k)
+					double softness_inv = h * (c + h * k);
+					double gamma = (softness_inv > 0.0) ? 1.0 / softness_inv : 0.0;
+					double beta = (h * k) / (c + h * k);
+
+					// 4. Calculate the Impulse
+					// Note: We subtract (gamma * accumulated_impulse) to create the "Spring" force
+					double impulse_denominator = (inverse_mass_1 + inverse_mass_2) + gamma;
+
+					double relative_velocity = normal_velocity_2 - normal_velocity_1;
+
+					// The "Buddha" Soft Constraint Equation:
+					correction_impulse = (normal_velocity + (beta / h) * distance) / impulse_denominator;
+				}
+
 				body_1->linear_velocity = vector_add(body_1->linear_velocity, vector_multiply(normal, correction_impulse * body_1->inverse_linear_mass));
 
 				body_2->linear_velocity = vector_subtract(body_2->linear_velocity, vector_multiply(normal, correction_impulse * body_2->inverse_linear_mass));
@@ -365,13 +506,18 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 			if (joint->type == PHYSICS_JOINT_TYPE_FIXED)
 			{
-				double relative_angular_velocity = body_2->angular_velocity - body_1->angular_velocity;
+				double relative_angle = body_2->angle - body_1->angle;
 
-				double correction_angular_impulse = relative_angular_velocity / (body_1->inverse_angular_mass + body_2->inverse_angular_mass);
+				if (relative_angle != 0.0)
+				{
+					double relative_angular_velocity = body_2->angular_velocity - body_1->angular_velocity;
 
-				body_1->angular_velocity += correction_angular_impulse * body_1->inverse_angular_mass;
+					double correction_angular_impulse = relative_angular_velocity / (body_1->inverse_angular_mass + body_2->inverse_angular_mass);
 
-				body_2->angular_velocity -= correction_angular_impulse * body_2->inverse_angular_mass;
+					body_1->angular_velocity += correction_angular_impulse * body_1->inverse_angular_mass;
+
+					body_2->angular_velocity -= correction_angular_impulse * body_2->inverse_angular_mass;
+				}
 			}
 		}
 	}
@@ -409,7 +555,7 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 			double current_depth = collision.depth - (linear_contribution + angular_contribution);
 
-			double collision_impulse = fmax(current_depth, 0) * PHYSICS_CORRECTION_FACTOR * collisions[i].inverse_normal_mass;
+			double collision_impulse = current_depth * PHYSICS_CORRECTION_FACTOR * collisions[i].inverse_normal_mass;
 
 			body_1->position_change = vector_subtract(body_1->position_change, vector_multiply(collision.normal, collision_impulse * body_1->inverse_linear_mass));
 
@@ -440,7 +586,7 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 			double distance = vector_length(displacement);
 
-			if (distance > 0)
+			if (distance != 0)
 			{
 				Vector normal = vector_divide(displacement, distance);
 
@@ -467,12 +613,27 @@ void physics_world_step(Physics_World* world, double delta_time)
 			{
 				double relative_angle = body_2->angle - body_1->angle + body_2->angle_change - body_1->angle_change;
 
-				double correction_angular_impulse = relative_angle * PHYSICS_CORRECTION_FACTOR / (body_1->inverse_angular_mass + body_2->inverse_angular_mass);
+				if (relative_angle != 0.0)
+				{
+					double correction_angular_impulse = relative_angle * PHYSICS_CORRECTION_FACTOR / (body_1->inverse_angular_mass + body_2->inverse_angular_mass);
 
-				body_1->angle_change += correction_angular_impulse * body_1->inverse_angular_mass;
+					body_1->angle_change += correction_angular_impulse * body_1->inverse_angular_mass;
 
-				body_2->angle_change -= correction_angular_impulse * body_2->inverse_angular_mass;
+					body_2->angle_change -= correction_angular_impulse * body_2->inverse_angular_mass;
+				}
 			}
+		}
+	}
+
+	if (PHYSICS_BACKFEED_POSITIONS)
+	{
+		for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
+		{
+			Physics_Body* body = body_node->item;
+
+			body->linear_velocity = vector_multiply(body->position_change, 1 / delta_time);
+
+			body->angular_velocity = body->angle_change / delta_time;
 		}
 	}
 
@@ -496,6 +657,17 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 		physics_body_update_world_transform(body);
 	}
+
+	if (PHYSICS_USE_WARM_STARTING)
+	{
+		memcpy(saved_collisions, collisions, collision_count * sizeof(Physics_Collision));
+
+		saved_collision_count = collision_count;
+
+		qsort(saved_collisions, saved_collision_count, sizeof(Physics_Collision), compare_collisions);
+	}
+
+	world->elapsed_time += delta_time;
 }
 
 Physics_Body* physics_body_create(Physics_World* world, Physics_Body_Type type)
@@ -508,11 +680,15 @@ Physics_Body* physics_body_create(Physics_World* world, Physics_Body_Type type)
 
 	body->node_in_world = list_insert_last_item(&world->body_list, body);
 
+	body->world->body_count++;
+
 	return body;
 }
 
 void physics_body_destroy(Physics_Body* body)
 {
+	body->world->body_count--;
+
 	physics_body_destroy_all_colliders(body);
 
 	physics_body_destroy_all_joints(body);
@@ -731,12 +907,16 @@ Physics_Collider* physics_collider_create(Physics_Body* body, const Shape* shape
 
 	body->world_transform_is_dirty = true;
 
+	body->world->collider_count++;
+
 	return collider;
 }
 
 void physics_collider_destroy(Physics_Collider* collider)
 {
 	Physics_Body* body = collider->body;
+
+	body->world->collider_count--;
 
 	physics_body_subtract_collider_mass(body, collider);
 
@@ -784,6 +964,10 @@ Physics_Joint* physics_joint_create(Physics_Joint_Type type, Physics_Body* body_
 
 	joint->node_in_world = list_insert_last_item(&body_1->world->joint_list, joint);
 
+	body_1->world->joint_count++;
+
+	body_2->world->joint_count++;
+
 	return joint;
 }
 
@@ -807,6 +991,10 @@ Physics_Joint* physics_joint_create_world(Physics_Joint_Type type, Physics_Body*
 
 void physics_joint_destroy(Physics_Joint* joint)
 {
+	joint->body_1->world->joint_count--;
+
+	joint->body_2->world->joint_count--;
+
 	list_node_destroy(joint->node_in_body_1);
 
 	list_node_destroy(joint->node_in_body_2);

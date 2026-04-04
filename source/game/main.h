@@ -8,15 +8,13 @@
 
 #include "engine/time.h"
 
-#include "menu.h"
+#include "engine/input.h"
 
-#include "settings.h"
-
-#include "battle.h"
-
-#include <time.h>
+#include "util.h"
 
 int main();
+
+void initialize();
 
 void update(double delta_time);
 

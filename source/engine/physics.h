@@ -8,9 +8,13 @@
 
 #define PHYSICS_CORRECTION_FACTOR 0.3
 
-#define PHYSICS_VELOCITY_ITERATION_COUNT 4
+#define PHYSICS_VELOCITY_ITERATION_COUNT 8
 
-#define PHYSICS_POSITION_ITERATION_COUNT 4
+#define PHYSICS_POSITION_ITERATION_COUNT 8
+
+#define PHYSICS_USE_WARM_STARTING false
+
+#define PHYSICS_BACKFEED_POSITIONS true
 
 typedef enum Physics_Body_Type Physics_Body_Type;
 
@@ -26,7 +30,7 @@ typedef struct Physics_Joint Physics_Joint;
 
 typedef struct Physics_Collision Physics_Collision;
 
-typedef bool (*Physics_Collision_Callback)(Physics_Collider* collider, Physics_Collider* other);
+typedef bool (* Physics_Collision_Callback)(Physics_Collider* collider, Physics_Collider* other);
 
 enum Physics_Body_Type
 {
@@ -58,11 +62,19 @@ struct Physics_World
 
 	List joint_list;
 
+	int body_count;
+
+	int collider_count;
+
+	int joint_count;
+
 	Physics_Collision* collisions;
 
 	int collision_count;
 
 	Physics_Collision_Callback collision_callback;
+
+	double elapsed_time;
 };
 
 struct Physics_Body
@@ -140,6 +152,8 @@ struct Physics_Collider
 
 	Physics_Collision_Callback collision_callback;
 
+	// not used by the engine
+
 	void* data;
 
 	int flags;
@@ -166,6 +180,8 @@ struct Physics_Joint
 	List_Node* node_in_body_2;
 
 	List_Node* node_in_world;
+
+	double total_impulse;
 };
 
 struct Physics_Collision
@@ -175,6 +191,8 @@ struct Physics_Collision
 	Physics_Collider* collider_1;
 
 	Physics_Collider* collider_2;
+
+	bool second;
 
 	double inverse_normal_mass;
 

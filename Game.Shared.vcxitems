@@ -19,25 +19,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\input.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\list.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\math.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\physics.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\physics.c">
+      <FileType>CppCode</FileType>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\random.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\battle.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\bot.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\button.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\cars.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\checkbox.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\counter.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\levels.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\game\main.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\menu.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\objects.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\save.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\scene.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\settings.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\sounds.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\textures.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\game\util.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\wheels.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\config.h" />
@@ -54,23 +41,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\sound.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\time.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\window.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\battle.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\bot.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\button.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\cars.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\checkbox.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\counter.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\defines.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\levels.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\game\main.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\menu.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\objects.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\save.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\scene.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\settings.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\sounds.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\textures.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\game\util.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\wheels.h" />
   </ItemGroup>
 </Project>
