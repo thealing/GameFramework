@@ -479,6 +479,8 @@ void initialize()
 	s_view_position.x += 300;
 	s_view_position.y -= 200;
 
+	config_set_value(CONFIG_KEY_TOUCH_ZOOM_ENABLED, (void*)true);
+
 	int body_count = 0;
 
 	for (List_Node* node = s_world->body_list.first; node != NULL; node = node->next)

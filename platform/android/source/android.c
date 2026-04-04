@@ -16,6 +16,8 @@ static Window_Event_Node* s_event_last;
 
 static bool s_window_active;
 
+static float s_prev_touch_dist;
+
 static void push_event(Window_Event* event)
 {
 	if (s_event_last == NULL) 
@@ -55,6 +57,49 @@ static void collect_input_events()
 		{
 			case AINPUT_EVENT_TYPE_MOTION: 
 			{
+				size_t pointer_count = AMotionEvent_getPointerCount(input_event);
+
+				if (pointer_count == 2 && config_get_value(CONFIG_KEY_TOUCH_ZOOM_ENABLED) != NULL)
+				{
+					float x1 = AMotionEvent_getX(input_event, 0);
+
+					float y1 = AMotionEvent_getY(input_event, 0);
+
+					float x2 = AMotionEvent_getX(input_event, 1);
+
+					float y2 = AMotionEvent_getY(input_event, 1);
+
+					float dx = x1 - x2;
+
+					float dy = y1 - y2;
+
+					float current_dist = sqrtf(dx * dx + dy * dy);
+
+					if (s_prev_touch_dist > 0)
+					{
+						float delta = (current_dist - s_prev_touch_dist) * 0.01f;
+
+						if (fabsf(delta) > 0.001f)
+						{
+							Window_Event zoom_event = { 0 };
+
+							zoom_event.type = WINDOW_EVENT_ZOOM;
+
+							zoom_event.zoom_event.amount = (double)delta;
+
+							push_event(&zoom_event);
+						}
+					}
+
+					s_prev_touch_dist = current_dist;
+
+					break;
+				}
+				else
+				{
+					s_prev_touch_dist = -1.0f;
+				}
+
 				int action = AMotionEvent_getAction(input_event) & AMOTION_EVENT_ACTION_MASK;
 
 				Window_Event_Type type = WINDOW_EVENT_UNKNOWN;
