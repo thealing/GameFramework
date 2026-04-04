@@ -663,7 +663,12 @@ void update(double delta_time)
 
 	step |= input_is_key_down(WINDOW_KEY_SPACE);
 
-	step |= s_buttons[BUTTON_STEP]->clicked;
+	if (s_buttons[BUTTON_STEP]->clicked)
+	{
+		step = true;
+
+		s_running = false;
+	}
 
 	if (input_is_key_pressed(WINDOW_KEY_ENTER) || s_buttons[BUTTON_PAUSE]->clicked)
 	{
