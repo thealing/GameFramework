@@ -12,6 +12,12 @@ static Vector s_mouse_position;
 
 static Vector s_view_position;
 
+static Physics_Body* s_grabbed_body;
+
+static Physics_Body* s_mouse_body;
+
+static Physics_Joint* s_mouse_joint;
+
 static Rect s_camera;
 
 static double s_zoom;
@@ -40,6 +46,21 @@ enum
 };
 
 static Button* s_buttons[BUTTON_COUNT];
+
+Vector get_mouse_world_position()
+{
+	Vector mouse_world = vector_scale(s_mouse_position, s_camera.max);
+
+	mouse_world = vector_subtract_xy(mouse_world, s_camera.max.x / 2, s_camera.max.y / 2);
+
+	mouse_world = vector_divide(mouse_world, s_zoom);
+
+	mouse_world = vector_add_xy(mouse_world, 0, 500);
+
+	mouse_world = vector_subtract(mouse_world, s_view_position);
+
+	return mouse_world;
+}
 
 int main()
 {
@@ -186,9 +207,19 @@ int main()
 
 								if (!movement_disabled)
 								{
-									s_view_position = vector_add(s_view_position, vector_divide(vector_scale(mouse_delta, s_camera.max), s_zoom));
-								}
+									Vector delta = vector_divide(vector_scale(mouse_delta, s_camera.max), s_zoom);
 
+									if (s_grabbed_body != NULL)
+									{
+										Vector mouse_world = get_mouse_world_position();
+
+										s_mouse_body->position = mouse_world;
+									}
+									else
+									{
+										s_view_position = vector_add(s_view_position, delta);
+									}
+								}
 							}
 						}
 
@@ -213,6 +244,40 @@ int main()
 							s_mouse_down = event.touch_event.index;
 
 							s_mouse_position = vector_create(touch->x, touch->y);
+
+							s_grabbed_body = NULL;
+
+							Vector mouse_world = get_mouse_world_position();
+
+							printf("%f %f\n",mouse_world.x,mouse_world.y);
+
+							for (List_Node* node = s_world->collider_list.first; node != NULL; node = node->next)
+							{
+								Physics_Collider* collider = node->item;
+
+								if (shape_test_point(collider->world_shape, mouse_world))
+								{
+									s_grabbed_body = collider->body;
+
+									if (s_mouse_body == NULL)
+									{
+										s_mouse_body = physics_body_create(s_world, PHYSICS_BODY_TYPE_STATIC);
+									}
+
+									if (s_mouse_joint != NULL)
+									{
+										physics_joint_destroy(s_mouse_joint);
+
+										s_mouse_joint = NULL;
+									}
+
+									s_mouse_body->position = mouse_world;
+
+									s_mouse_joint = physics_joint_create_world(PHYSICS_JOINT_TYPE_PIN, s_mouse_body, mouse_world, s_grabbed_body, mouse_world);
+
+									break;
+								}
+							}
 						}
 
 						break;
@@ -236,6 +301,8 @@ int main()
 							if (event.touch_event.index == s_mouse_down)
 							{
 								s_mouse_down = -1;
+
+								s_grabbed_body = NULL;
 							}
 						}
 
@@ -246,6 +313,8 @@ int main()
 						if (event.touch_event.index == s_mouse_down)
 						{
 							s_mouse_down = -1;
+
+							s_grabbed_body = NULL;
 						}
 
 						break;
@@ -589,6 +658,13 @@ void update(double delta_time)
 	if (s_buttons[BUTTON_RESTART]->clicked)
 	{
 		initialize();
+	}
+
+	if (s_grabbed_body == NULL && s_mouse_joint != NULL)
+	{
+		physics_joint_destroy(s_mouse_joint);
+
+		s_mouse_joint = NULL;
 	}
 
 	if (step)
