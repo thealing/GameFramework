@@ -18,7 +18,7 @@ static Physics_Body* s_mouse_body;
 
 static Physics_Joint* s_mouse_joint;
 
-static Rect s_camera;
+static Rect s_main_camera;
 
 static double s_zoom;
 
@@ -47,11 +47,13 @@ enum
 
 static Button* s_buttons[BUTTON_COUNT];
 
+static bool s_running = true;
+
 Vector get_mouse_world_position()
 {
-	Vector mouse_world = vector_scale(s_mouse_position, s_camera.max);
+	Vector mouse_world = vector_scale(s_mouse_position, s_main_camera.max);
 
-	mouse_world = vector_subtract_xy(mouse_world, s_camera.max.x / 2, s_camera.max.y / 2);
+	mouse_world = vector_subtract_xy(mouse_world, s_main_camera.max.x / 2, s_main_camera.max.y / 2);
 
 	mouse_world = vector_divide(mouse_world, s_zoom);
 
@@ -207,13 +209,24 @@ int main()
 
 								if (!movement_disabled)
 								{
-									Vector delta = vector_divide(vector_scale(mouse_delta, s_camera.max), s_zoom);
+									Vector delta = vector_divide(vector_scale(mouse_delta, s_main_camera.max), s_zoom);
 
 									if (s_grabbed_body != NULL)
 									{
 										Vector mouse_world = get_mouse_world_position();
 
+										if (s_grabbed_body->type != PHYSICS_BODY_TYPE_DYNAMIC || !s_running)
+										{
+											s_grabbed_body->position = vector_add(s_grabbed_body->position, mouse_world);
+
+											s_grabbed_body->position = vector_subtract(s_grabbed_body->position, s_mouse_body->position );
+										
+											s_grabbed_body->world_transform_is_dirty = true;
+										}
+
 										s_mouse_body->position = mouse_world;
+
+										s_mouse_body->world_transform_is_dirty = true;
 									}
 									else
 									{
@@ -249,8 +262,6 @@ int main()
 
 							Vector mouse_world = get_mouse_world_position();
 
-							printf("%f %f\n",mouse_world.x,mouse_world.y);
-
 							for (List_Node* node = s_world->collider_list.first; node != NULL; node = node->next)
 							{
 								Physics_Collider* collider = node->item;
@@ -273,8 +284,13 @@ int main()
 
 									s_mouse_body->position = mouse_world;
 
-									s_mouse_joint = physics_joint_create_world(PHYSICS_JOINT_TYPE_PIN, s_mouse_body, mouse_world, s_grabbed_body, mouse_world);
+									s_mouse_body->world_transform_is_dirty = true;
 
+									if (s_grabbed_body->type == PHYSICS_BODY_TYPE_DYNAMIC)
+									{
+										s_mouse_joint = physics_joint_create_world(PHYSICS_JOINT_TYPE_PIN, s_mouse_body, mouse_world, s_grabbed_body, mouse_world);
+									}
+									
 									break;
 								}
 							}
@@ -638,9 +654,7 @@ void initialize()
 
 void update(double delta_time)
 {
-	static bool running = true;
-
-	bool step = running;
+	bool step = s_running;
 
 	step |= input_is_key_pressed(WINDOW_KEY_RIGHT);
 
@@ -650,9 +664,9 @@ void update(double delta_time)
 
 	if (input_is_key_pressed(WINDOW_KEY_ENTER) || s_buttons[BUTTON_PAUSE]->clicked)
 	{
-		running ^= true;
+		s_running ^= true;
 
-		s_buttons[BUTTON_PAUSE]->text = running ? "PAUSE" : "RESUME";
+		s_buttons[BUTTON_PAUSE]->text = s_running ? "PAUSE" : "RESUME";
 	}
 
 	if (s_buttons[BUTTON_RESTART]->clicked)
@@ -676,6 +690,15 @@ void update(double delta_time)
 		s_step_time = get_time() - time_before;
 
 		s_delta_time = delta_time;
+	}
+	else
+	{
+		for (List_Node* body_node = s_world->body_list.first; body_node != NULL; body_node = body_node->next)
+		{
+			Physics_Body* body = body_node->item;
+
+			physics_body_update_world_transform(body);
+		}
 	}
 
 	s_total_error = 0;
@@ -718,13 +741,13 @@ void update(double delta_time)
 
 void render()
 {
-	s_camera = (Rect){ 0, 0, fmax(s_width / s_height, 1) * 1100, fmax(s_height / s_width, 1) * 1100 };
+	s_main_camera = (Rect){ 0, 0, fmax(s_width / s_height, 1) * 1100, fmax(s_height / s_width, 1) * 1100 };
 
-	graphics_set_camera(&s_camera);
+	graphics_set_camera(&s_main_camera);
 
 	graphics_save_transform();
 
-	graphics_translate(vector_create(s_camera.max.x / 2, s_camera.max.y / 2));
+	graphics_translate(vector_create(s_main_camera.max.x / 2, s_main_camera.max.y / 2));
 
 	graphics_scale_uniformly(s_zoom);
 
