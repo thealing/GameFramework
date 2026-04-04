@@ -561,7 +561,7 @@ void initialize()
 		// --- Rotating Square Container ---
 		Physics_Body* container = physics_body_create(s_world, PHYSICS_BODY_TYPE_KINEMATIC);
 		container->position = vector_create(offset_x, offset_y); // Center of the container
-		container->angular_velocity = 1.0+t*2; // Rotate at 1 rad/s
+		container->angular_velocity = 1.0+t*1.5; // Rotate at 1 rad/s
 
 		double size = 300.0;
 		double thickness = 10.0;
@@ -612,55 +612,9 @@ void initialize()
 				c = physics_collider_create(b, move_shape(s), 1.0);
 			}
 
+			c->static_friction = 0.25;
+			c->dynamic_friction = 0.25;
 		}
-	}
-
-	int body_count = 0;
-
-	for (List_Node* node = s_world->body_list.first; node != NULL; node = node->next)
-	{
-		body_count++;
-	}
-
-	if (body_count > 1)
-	{
-		Physics_Body** body_array = calloc(body_count, sizeof(Physics_Body*));
-
-		int body_index = 0;
-
-		for (List_Node* node = s_world->body_list.first; node != NULL; node = node->next)
-		{
-			body_array[body_index++] = node->item;
-
-			physics_body_update_world_transform(node->item);
-		}
-
-		for (int j = 0; j < 3000 * 0; j++)
-		{
-			int i1 = random_int_below(body_count);
-
-			int i2 = random_int_below(body_count);
-
-			if (i1 == i2)
-			{
-				continue;
-			}
-
-			Physics_Body* b1 = body_array[i1];
-
-			Physics_Body* b2 = body_array[i2];
-
-			if (b1->type == PHYSICS_BODY_TYPE_STATIC && b2->type == PHYSICS_BODY_TYPE_STATIC)
-			{
-				continue;
-			}
-
-			Vector position = vector_middle(b1->position, b2->position);
-
-			physics_joint_create_world(PHYSICS_JOINT_TYPE_FIXED, b1, position, b2, position);
-		}
-
-		free(body_array);
 	}
 }
 
