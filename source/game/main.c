@@ -61,7 +61,7 @@ static bool s_running = true;
 
 static bool s_ws = true;
 
-static bool s_pbd = true;
+static bool s_pbd = false;
 
 Vector get_mouse_world_position()
 {
@@ -476,9 +476,9 @@ void initialize()
 
 	Physics_Body* ground = physics_body_create(s_world, PHYSICS_BODY_TYPE_STATIC);
 
-	Shape* top = create_rect_shape(vector_create(-500*wsize, 1500*wsize-10), vector_create(500*wsize, 1500*wsize+10));
+	//Shape* top = create_rect_shape(vector_create(-500*wsize, 1500*wsize-10), vector_create(500*wsize, 1500*wsize+10));
 
-	physics_collider_create(ground, move_shape(top), 1.0);
+	//physics_collider_create(ground, move_shape(top), 1.0);
 
 	Shape* bottom = create_rect_shape(vector_create(-500*wsize, -10), vector_create(500*wsize, 10));
 
@@ -591,6 +591,55 @@ void initialize()
 
 			physics_joint_create_world(PHYSICS_JOINT_TYPE_PIN, q, vv, b, v);
 		}
+	}
+
+	if (true)
+	{
+		double xA = -500*wsize;
+		double xB = 500*wsize;
+		double y0 = 1500*wsize;
+
+		double l = 30.0;
+
+		double h = 5.0;
+
+		double stretch = 0.8;
+
+		int num_pieces = (int)((xB - xA) / l * stretch);
+
+		Vector v = vector_create(xA, y0);
+
+		Physics_Body* q = ground;
+
+		for (int i = 0; i < num_pieces; i++)
+		{
+			Physics_Body* b = physics_body_create(s_world, PHYSICS_BODY_TYPE_DYNAMIC);
+
+			b->position = vector_add(v, vector_create(l / 2.0, 0.0));
+
+			Shape* s = create_rect_shape(vector_create(-l / 2.0, -h / 2.0), vector_create(l / 2.0, h / 2.0));
+
+			Physics_Collider* c = physics_collider_create(b, move_shape(s), 1.0);
+
+			c->filter_group = -1;
+
+			if (q == ground)
+			{
+				physics_joint_create_world(PHYSICS_JOINT_TYPE_FIXED, q, v, b, v);
+			}
+			else
+			{
+				physics_joint_create_local(PHYSICS_JOINT_TYPE_FIXED, q, vector_create(l / 2.0, 0.0), b, vector_create(-l / 2.0, 0.0));
+			}
+
+			physics_body_update_world_transform(b);
+
+			q = b;
+
+			v = vector_add(v, vector_create(l * 1 / stretch, 0.0));
+		}
+
+		physics_joint_create_world(PHYSICS_JOINT_TYPE_FIXED, ground, v, q, v);
 	}
 
 	for(int t=0;t<3 *1;t++)
