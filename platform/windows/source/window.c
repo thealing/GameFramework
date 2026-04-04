@@ -150,6 +150,24 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			break;
 		}
+		case WM_MOUSELEAVE:
+		{
+			event.type = WINDOW_EVENT_TOUCH_LEAVE;
+
+			push_event(&event);
+
+			break;
+		}
+		case WM_MOUSEWHEEL:
+		{
+			event.type = WINDOW_EVENT_ZOOM;
+
+			event.zoom_event.amount = (double)(INT16)HIWORD(wparam) / WHEEL_DELTA;
+
+			push_event(&event);
+
+			break;
+		}
 		case WM_KEYDOWN:
 		{
 			event.type = WINDOW_EVENT_KEY_DOWN;
