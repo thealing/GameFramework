@@ -42,10 +42,14 @@ enum
 
 	BUTTON_RESTART,
 
+	BUTTON_SIZE,
+
 	BUTTON_COUNT
 };
 
 static Button* s_buttons[BUTTON_COUNT];
+
+static int s_size = 2;
 
 static bool s_running = true;
 
@@ -55,13 +59,18 @@ Vector get_mouse_world_position()
 
 	mouse_world = vector_subtract_xy(mouse_world, s_main_camera.max.x / 2, s_main_camera.max.y / 2);
 
-	mouse_world = vector_divide(mouse_world, s_zoom);
+	mouse_world = vector_add_xy(mouse_world, 0, 300);
 
-	mouse_world = vector_add_xy(mouse_world, 0, 500);
+	mouse_world = vector_divide(mouse_world, s_zoom);
 
 	mouse_world = vector_subtract(mouse_world, s_view_position);
 
 	return mouse_world;
+}
+
+double get_wsize()
+{
+	return pow(s_size / 3.0, 1.5);
 }
 
 int main()
@@ -104,11 +113,9 @@ int main()
 
 	window_create(1280, 720);
 
-	s_zoom = 1;
+	s_zoom = .9;
 
 	s_mouse_down = -1;
-
-	s_zoom = 0.6;
 
 	s_view_position.x += 300;
 	s_view_position.y -= 200;
@@ -120,6 +127,8 @@ int main()
 	s_buttons[BUTTON_STEP] = button_create("STEP", vector_create(0, 0), vector_create(140, 50));
 	
 	s_buttons[BUTTON_RESTART] = button_create("RESTART", vector_create(0, 0), vector_create(140, 50));
+
+	s_buttons[BUTTON_SIZE] = button_create("SMALL", vector_create(0, 0), vector_create(140, 50));
 
 	while (window_is_open())
 	{
@@ -427,6 +436,10 @@ void initialize()
 
 	if (s_world != NULL)
 	{
+		s_mouse_joint = NULL;
+
+		s_mouse_body = NULL;
+
 		physics_world_destroy(s_world);
 	}
 
@@ -434,21 +447,25 @@ void initialize()
 
 	s_world->gravity.y = -800;
 
+	double wsize2 = get_wsize();
+
+	double wsize = sqrt(wsize2);
+
 	Physics_Body* ground = physics_body_create(s_world, PHYSICS_BODY_TYPE_STATIC);
 
-	Shape* top = create_rect_shape(vector_create(-500, 1500-10), vector_create(500, 1500+10));
+	Shape* top = create_rect_shape(vector_create(-500*wsize, 1500*wsize-10), vector_create(500*wsize, 1500*wsize+10));
 
 	physics_collider_create(ground, move_shape(top), 1.0);
 
-	Shape* bottom = create_rect_shape(vector_create(-500, -10), vector_create(500, 10));
+	Shape* bottom = create_rect_shape(vector_create(-500*wsize, -10), vector_create(500*wsize, 10));
 
 	physics_collider_create(ground, move_shape(bottom), 1.0);
 
-	Shape* left_wall = create_rect_shape(vector_create(-510, 0), vector_create(-490, 1500));
+	Shape* left_wall = create_rect_shape(vector_create(-500*wsize-10, 0), vector_create(-500*wsize+10, 1500*wsize));
 
 	physics_collider_create(ground, move_shape(left_wall), 1.0);
 
-	Shape* right_wall = create_rect_shape(vector_create(490, 0), vector_create(510, 1500));
+	Shape* right_wall = create_rect_shape(vector_create(500*wsize-10, 0), vector_create(500*wsize+10, 1500*wsize));
 	
 	physics_collider_create(ground, move_shape(right_wall), 1.0);
 
@@ -461,11 +478,11 @@ void initialize()
 		collider->dynamic_friction = 1;
 	}
 
-	for (int i = 0; i < 2500 * 1; i++)
+	for (int i = 0; i < 2500 * wsize2; i++)
 	{
 		Physics_Body* b = physics_body_create(s_world, PHYSICS_BODY_TYPE_DYNAMIC);
 
-		b->position = vector_create(random_real_in_range(-450, 450), random_real_in_range(100, 1000));
+		b->position = vector_create(random_real_in_range(-450*wsize, 450*wsize), random_real_in_range(100*wsize, 1000*wsize));
 
 		b->angle = 1;
 
@@ -499,13 +516,13 @@ void initialize()
 	{
 		double l = 10, h = 2, r = 20;
 
-		Vector v = vector_create(0, 1400);
+		Vector v = vector_create(0, 1400*wsize);
 
 		Vector vv = vector_create(0, 0);
 
 		Physics_Body* q = ground;
 
-		for (int i = 0; i < 30; i++)
+		for (int i = 0; i < 30 * wsize2; i++)
 		{
 			Physics_Body* b = physics_body_create(s_world, PHYSICS_BODY_TYPE_DYNAMIC);
 
@@ -555,15 +572,15 @@ void initialize()
 
 	for(int t=0;t<3 *1;t++)
 	{
-		double offset_x = -1000.0;
-		double offset_y = 1300-t*550;
+		double offset_x = -1000.0*wsize;
+		double offset_y = 1300*wsize - t * 550.0*wsize;
 
 		// --- Rotating Square Container ---
 		Physics_Body* container = physics_body_create(s_world, PHYSICS_BODY_TYPE_KINEMATIC);
 		container->position = vector_create(offset_x, offset_y); // Center of the container
-		container->angular_velocity = 1.0+t*1.5; // Rotate at 1 rad/s
+		container->angular_velocity = (1.0+t*1.5); // Rotate at 1 rad/s
 
-		double size = 300.0;
+		double size = 300.0*wsize;
 		double thickness = 10.0;
 
 		// Build the 4 walls of the square container
@@ -585,7 +602,7 @@ void initialize()
 		}
 
 		// --- 200 Dynamic Objects inside the container ---
-		for (int i = 0; i < 200; i++)
+		for (int i = 0; i < 200 * wsize2; i++)
 		{
 			Physics_Body* b = physics_body_create(s_world, PHYSICS_BODY_TYPE_DYNAMIC);
 
@@ -638,6 +655,45 @@ void update(double delta_time)
 	if (s_buttons[BUTTON_RESTART]->clicked)
 	{
 		initialize();
+	}
+
+	if (s_buttons[BUTTON_SIZE]->clicked)
+	{
+		double size1 = get_wsize();
+
+		s_size++;
+
+		if (s_size == 4)
+		{
+			s_size = 1;
+		}
+
+		double d = sqrt(get_wsize()) / sqrt(size1);
+
+		s_zoom /= d;
+
+		s_view_position = vector_multiply(s_view_position, d);
+
+		initialize();
+	}
+
+	switch (s_size)
+	{
+		case 1:
+		{
+			s_buttons[BUTTON_SIZE]->text = "SMALL";
+			break;
+		}
+		case 2:
+		{
+			s_buttons[BUTTON_SIZE]->text = "MEDIUM";
+			break;
+		}
+		case 3:
+		{
+			s_buttons[BUTTON_SIZE]->text = "LARGE";
+			break;
+		}
 	}
 
 	if (s_grabbed_body == NULL && s_mouse_joint != NULL)
@@ -715,9 +771,9 @@ void render()
 
 	graphics_translate(vector_create(s_main_camera.max.x / 2, s_main_camera.max.y / 2));
 
-	graphics_scale_uniformly(s_zoom);
+	graphics_translate(vector_create(0, -300));
 
-	graphics_translate(vector_create(0, -500));
+	graphics_scale_uniformly(s_zoom);
 
 	graphics_translate(s_view_position);
 
@@ -732,6 +788,8 @@ void render()
 	s_buttons[BUTTON_STEP]->position = vector_create(s_width - 90, s_height - 125);
 
 	s_buttons[BUTTON_RESTART]->position = vector_create(s_width - 90, s_height - 195);
+
+	s_buttons[BUTTON_SIZE]->position = vector_create(s_width - 90, s_height - 265);
 
 	for (int i = 0; i < BUTTON_COUNT; i++)
 	{
