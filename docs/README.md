@@ -1,19 +1,56 @@
-# GameFramework
+# Game Framework
 
-This is a high-performance, cross-platform 2D game framework written in C99, featuring a custom physics engine and a modular architecture.
+A high-performance, cross-platform 2D game framework written in C99, featuring a custom physics engine and a modular architecture.
+
+## Getting Started
+
+To initialize a game, follow the established configuration and event-driven sequence:
+
+1. **Configure Application**: Before creating the window, set key application metadata using the `config` system.
+    ```c
+    config_set_value(CONFIG_KEY_WINDOW_TITLE, "My Game");
+    config_set_value(CONFIG_KEY_WINDOW_CLASS, "MyGameClass");
+    config_set_value(CONFIG_KEY_FOLDER_NAME, "MyGameAssets");
+    ```
+
+2. **Initialize Window**: Call `window_create(width, height)` to start the platform-specific initialization.
+
+3. **Main Event Loop**: Process system events and manage the graphics context.
+    ```c
+    while (window_is_open()) {
+        Window_Event event;
+        while (window_poll_event(&event)) {
+            if (event.type == WINDOW_EVENT_WINDOW_CREATED) {
+                // Initialize graphics context and load initial assets
+                graphics_init(event.state_event.window);
+                texture_create_from_file(&my_texture, "asset.png");
+            }
+            // Handle input events...
+        }
+
+        // Logic Update
+        input_update();
+        physics_world_step(world, delta_time, true, true);
+
+        // Rendering
+        graphics_clear(&clear_color);
+        // draw calls...
+        graphics_display();
+    }
+    ```
 
 ## Overview
 The framework is designed with a strict separation between core engine logic and platform-specific backends. This allows for seamless cross-platform development while maintaining efficiency and a minimal footprint without any 3rd party library dependencies.
 
 ### Project Structure
+- **`source/game/`**: High-level application code utilizing the engine's API.
 - **`source/engine/`**: Platform-independent core modules for physics, graphics, geometry, input, and memory management.
 - **`platform/`**: Native implementations for Windows (Win32/DirectShow/OpenGL) and Android (NativeActivity/OpenSL ES/OpenGL ES).
-- **`source/game/`**: High-level application code utilizing the engine's API.
 
 ## Core Features
 
 ### 2D Physics Engine
-A custom rigid-body physics simulation built from scratch:
+A custom rigid-body physics simulator built from scratch:
 - **Solver**: Dual-stage impulse-based velocity solver and position-based correction. Features **Warm Starting** for improved stability across frames.
 - **Broad Phase**: Efficient **Sweep and Prune** algorithm and **AABB Test**.
 - **Narrow Phase**: Robust collision detection using the **Separating Axis Theorem (SAT)** for polygons and specialized routines for circles and segments.
@@ -42,25 +79,21 @@ Multi-platform audio engine for low-latency playback:
 - **Data Structures**: Implementations of linked lists, maps, and geometric primitives (Vectors, Transforms, Shapes).
 - **Security**: Platform-native cryptographically secure random number generation.
 
-## Platform Implementations
+## Systems Architecture
 
-### Windows
-- **Display**: Native Win32 window management.
-- **Image Loading**: Utilizes **Windows Imaging Component (WIC)** for PNG, JPG, and BMP support.
-- **Audio**: DirectShow Filter Graph.
-- **Time**: High-resolution performance counters.
+### Window System
+The framework employs a unified event-driven windowing system that abstracts platform-specific lifecycles:
+- **Event Loop**: Use `window_poll_event` to handle a variety of events including touch/mouse input, key presses, and window state changes (Resumed, Paused, Created, Destroyed).
+- **Unified Input**: Mouse clicks on Windows are mapped to `WINDOW_EVENT_TOUCH_*` events, providing a consistent interface for both desktop and mobile platforms.
+- **Platform Backends**: 
+    - **Windows**: Managed via a standard Win32 `WNDCLASS` and `window_proc` callback.
+    - **Android**: Integrated with `NativeActivity`, handling the asynchronous nature of mobile app lifecycles (e.g., surface creation/destruction).
 
-### Android
-- **Lifecycle**: Managed via `NativeActivity` and the Android NDK.
-- **Assets**: Integrated with `AAssetManager` for direct access to package resources.
-- **Audio**: OpenSL ES with Android File Descriptor support.
-
-## Getting Started
-The framework follows a simple lifecycle:
-1. Initialize the system with `window_create()`.
-2. In the main loop, call `window_update()` to handle input and events.
-3. Perform game logic and step the physics world with `physics_world_step()`.
-4. Render the scene using `graphics_*` functions and swap buffers with `window_display()`.
+### Asset System
+Assets are managed through a platform-agnostic interface with specialized loading strategies:
+- **Resource Extraction (Windows)**: On Windows, the framework automatically extracts embedded resources into a local folder (configured via `CONFIG_KEY_FOLDER_NAME`) to ensure assets are accessible via standard file I/O.
+- **Native Loading (Android)**: Leverages `AAssetManager` to read assets directly from the APK, supporting efficient streaming of audio and image data.
+- **Unified Image Loading**: Provides `texture_create_from_file` which uses platform-specific decoders to populate hardware textures from any image format.
 
 ## Technical Philosophy
 - **Zero Dependencies**: No 3rd party libraries are used, only platform-native APIs and standard C99.
