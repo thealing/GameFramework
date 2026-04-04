@@ -408,6 +408,16 @@ int main()
 		sleep(sleep_duration);
 	}
 
+	if (s_world != NULL)
+	{
+		physics_world_destroy(s_world);
+	}
+
+	for (int i = 0; i < BUTTON_COUNT; i++)
+	{
+		button_destroy(s_buttons[i]);
+	}
+
 	return 0;
 }
 
@@ -439,7 +449,7 @@ void initialize()
 	physics_collider_create(ground, move_shape(left_wall), 1.0);
 
 	Shape* right_wall = create_rect_shape(vector_create(490, 0), vector_create(510, 1500));
-
+	
 	physics_collider_create(ground, move_shape(right_wall), 1.0);
 
 	for (List_Node* collider_node = ground->collider_list.first; collider_node != NULL; collider_node = collider_node->next)
@@ -738,7 +748,7 @@ void update(double delta_time)
 		button_update(s_buttons[i]);
 	}
 }
-#include<time.h>
+
 void render()
 {
 	s_main_camera = (Rect){ 0, 0, fmax(s_width / s_height, 1) * 1100, fmax(s_height / s_width, 1) * 1100 };

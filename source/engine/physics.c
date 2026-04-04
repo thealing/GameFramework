@@ -56,6 +56,21 @@ void physics_world_destroy(Physics_World* world)
 
 	pool_destroy(world->joint_pool);
 
+	if (world->collisions != NULL)
+	{
+		free(world->collisions);
+	}
+
+	if (world->saved_collisions != NULL)
+	{
+		free(world->saved_collisions);
+	}
+
+	if (world->collision_map != NULL)
+	{
+		map_destroy(world->collision_map);
+	}
+
 	free(world);
 }
 
