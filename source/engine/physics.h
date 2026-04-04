@@ -88,6 +88,13 @@ struct Physics_World
 
 	double elapsed_time;
 
+    double time_integration;
+    double time_collision;
+    double time_warm_start;
+    double time_velocity;
+    double time_position;
+    double time_transform;
+
 	Pool* list_pool;
 
 	Pool* body_pool;
@@ -210,9 +217,9 @@ struct Physics_Collision
 {
 	Collision collision;
 
-	Physics_Collider* collider_1;
+	Physics_Body* body_1;
 
-	Physics_Collider* collider_2;
+	Physics_Body* body_2;
 
 	bool second;
 
@@ -229,6 +236,8 @@ struct Physics_Collision
 	double normal_impulse;
 
 	double tangent_impulse;
+
+	Map_Key key;
 };
 
 Physics_World* physics_world_create();

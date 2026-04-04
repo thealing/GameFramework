@@ -715,7 +715,7 @@ void update(double delta_time)
 
 	for (int i = 0; i < s_world->collision_count; i++)
 	{
-		if (s_world->collisions[i].collider_1->body->type == PHYSICS_BODY_TYPE_STATIC && s_world->collisions[i].collider_2->body->type == PHYSICS_BODY_TYPE_STATIC)
+		if (s_world->collisions[i].body_1->type == PHYSICS_BODY_TYPE_STATIC && s_world->collisions[i].body_2->type == PHYSICS_BODY_TYPE_STATIC)
 		{
 			continue;
 		}
@@ -823,6 +823,18 @@ void render()
 	h += s + m;
 
 	graphics_draw_format_in_rect(&(Rect) { 5, 0, 0, 20 }, ALIGNMENT_LEFT, "%3d %2d", lround(s_update_fps), lround(s_render_fps));
+
+
+	graphics_draw_format_in_rect(&(Rect) { 100, s_height / 2, 0, s_height / 2+20  }, 
+		ALIGNMENT_LEFT, "INT: %.1f COL: %.1f WS: %.1f VEL: %.1f POS: %.1f TRA: %.1f", 
+		s_world->time_integration*1e3, 
+		s_world->time_collision*1e3,
+		s_world->time_warm_start*1e3,
+		s_world->time_velocity*1e3,
+		s_world->time_position*1e3,
+		s_world->time_transform*1e3
+		);
+	
 
 	// --- START SNAIL TRACKER ---
 	static float math_result = -1;

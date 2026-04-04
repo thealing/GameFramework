@@ -1,4 +1,5 @@
 #include "physics.h"
+#include "engine/time.h"
 
 Physics_World* physics_world_create()
 {
@@ -76,6 +77,8 @@ void physics_world_destroy(Physics_World* world)
 
 void physics_world_step(Physics_World* world, double delta_time)
 {
+	double start_time = get_time();
+
 	for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
 	{
 		Physics_Body* body = body_node->item;
@@ -124,6 +127,9 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 		body->angular_force = 0.0;
 	}
+
+	world->time_integration = get_time() - start_time;
+	start_time = get_time();
 
 	for (List_Node* collider_node = world->collider_list.first; collider_node != NULL; )
 	{
@@ -233,6 +239,8 @@ void physics_world_step(Physics_World* world, double delta_time)
 					collided &= collider_2->collision_callback(collider_2, collider_1);
 				}
 
+				int previous_collision_count = collision_count;
+
 				if (collided && !collider_1->sensor && !collider_2->sensor && collision_count + 2 <= PHYSICS_COLLISION_COUNT_MAX)
 				{
 					collision_count++;
@@ -254,101 +262,86 @@ void physics_world_step(Physics_World* world, double delta_time)
 						collision_count++;
 					}
 				}
+
+				for (int i = previous_collision_count; i < collision_count; i++)
+				{
+					Collision collision = collisions[i].collision;
+
+					Physics_Body* body_1 = collider_1->body;
+
+					Physics_Body* body_2 = collider_2->body;
+
+					Vector tangent_1 = vector_left(vector_subtract(collision.point, body_1->position));
+
+					Vector tangent_2 = vector_left(vector_subtract(collision.point, body_2->position));
+
+					Vector contact_velocity_1 = vector_add(body_1->linear_velocity, vector_multiply(tangent_1, body_1->angular_velocity));
+
+					Vector contact_velocity_2 = vector_add(body_2->linear_velocity, vector_multiply(tangent_2, body_2->angular_velocity));
+
+					Vector relative_velocity = vector_subtract(contact_velocity_2, contact_velocity_1);
+
+					double normal_velocity = vector_dot(collision.normal, relative_velocity);
+
+					double combined_restitution = fmax(collider_1->restitution, collider_2->restitution);
+
+					double normal_inverse_mass_1 = body_1->inverse_linear_mass + body_1->inverse_angular_mass * square(vector_dot(collision.normal, tangent_1));
+
+					double normal_inverse_mass_2 = body_2->inverse_linear_mass + body_2->inverse_angular_mass * square(vector_dot(collision.normal, tangent_2));
+
+					collisions[i].inverse_normal_mass = 1 / (normal_inverse_mass_1 + normal_inverse_mass_2);
+
+					collisions[i].target_velocity = -fmin(normal_velocity, 0) * combined_restitution;
+
+					collisions[i].normal_impulse = 0;
+
+					Vector collision_tangent = vector_right(collision.normal);
+
+					collisions[i].static_friction = sqrt(collider_1->static_friction * collider_2->static_friction);
+
+					collisions[i].dynamic_friction = sqrt(collider_1->dynamic_friction * collider_2->dynamic_friction);
+
+					double tangent_inverse_mass_1 = body_1->inverse_linear_mass + body_1->inverse_angular_mass * square(vector_dot(collision_tangent, tangent_1));
+
+					double tangent_inverse_mass_2 = body_2->inverse_linear_mass + body_2->inverse_angular_mass * square(vector_dot(collision_tangent, tangent_2));
+
+					collisions[i].inverse_tangent_mass = 1 / (tangent_inverse_mass_1 + tangent_inverse_mass_2);
+
+					if (PHYSICS_USE_WARM_STARTING)
+					{
+						collisions[i].key = (Map_Key)collider_1->index | (Map_Key)collider_2->index << 30 | (Map_Key)collisions[i].second << 60;
+
+						Map_Value value = 0;
+
+						if (map_get(world->collision_map, collisions[i].key, &value))
+						{
+							Physics_Collision* saved_collision = &world->saved_collisions[value];
+
+							double collision_impulse = saved_collision->normal_impulse;
+
+							collisions[i].normal_impulse = collision_impulse;
+
+							body_1->linear_velocity = vector_subtract(body_1->linear_velocity, vector_multiply(collision.normal, collision_impulse * body_1->inverse_linear_mass));
+
+							body_2->linear_velocity = vector_add(body_2->linear_velocity, vector_multiply(collision.normal, collision_impulse * body_2->inverse_linear_mass));
+
+							body_1->angular_velocity -= vector_dot(collision.normal, tangent_1) * collision_impulse * body_1->inverse_angular_mass;
+
+							body_2->angular_velocity += vector_dot(collision.normal, tangent_2) * collision_impulse * body_2->inverse_angular_mass;
+						}
+					}
+				}
 			}
 		}
 	}
+
+	world->time_collision = get_time() - start_time;
+	start_time = get_time();
 
 	world->collision_count = collision_count;
 
-	for (int i = 0; i < collision_count; i++)
-	{
-		Collision collision = collisions[i].collision;
-
-		Physics_Collider* collider_1 = collisions[i].collider_1;
-
-		Physics_Collider* collider_2 = collisions[i].collider_2;
-
-		Physics_Body* body_1 = collider_1->body;
-
-		Physics_Body* body_2 = collider_2->body;
-
-		Vector tangent_1 = vector_left(vector_subtract(collision.point, body_1->position));
-
-		Vector tangent_2 = vector_left(vector_subtract(collision.point, body_2->position));
-
-		Vector contact_velocity_1 = vector_add(body_1->linear_velocity, vector_multiply(tangent_1, body_1->angular_velocity));
-
-		Vector contact_velocity_2 = vector_add(body_2->linear_velocity, vector_multiply(tangent_2, body_2->angular_velocity));
-
-		Vector relative_velocity = vector_subtract(contact_velocity_2, contact_velocity_1);
-
-		double normal_velocity = vector_dot(collision.normal, relative_velocity);
-
-		double combined_restitution = fmax(collider_1->restitution, collider_2->restitution);
-
-		double normal_inverse_mass_1 = body_1->inverse_linear_mass + body_1->inverse_angular_mass * square(vector_dot(collision.normal, tangent_1));
-
-		double normal_inverse_mass_2 = body_2->inverse_linear_mass + body_2->inverse_angular_mass * square(vector_dot(collision.normal, tangent_2));
-
-		collisions[i].inverse_normal_mass = 1 / (normal_inverse_mass_1 + normal_inverse_mass_2);
-
-		collisions[i].target_velocity = -fmin(normal_velocity, 0) * combined_restitution;
-
-		collisions[i].normal_impulse = 0;
-
-		Vector collision_tangent = vector_right(collision.normal);
-
-		collisions[i].static_friction = sqrt(collider_1->static_friction * collider_2->static_friction);
-
-		collisions[i].dynamic_friction = sqrt(collider_1->dynamic_friction * collider_2->dynamic_friction);
-
-		double tangent_inverse_mass_1 = body_1->inverse_linear_mass + body_1->inverse_angular_mass * square(vector_dot(collision_tangent, tangent_1));
-
-		double tangent_inverse_mass_2 = body_2->inverse_linear_mass + body_2->inverse_angular_mass * square(vector_dot(collision_tangent, tangent_2));
-
-		collisions[i].inverse_tangent_mass = 1 / (tangent_inverse_mass_1 + tangent_inverse_mass_2);
-	}
-
-	if (PHYSICS_USE_WARM_STARTING)
-	{
-		for (int i = 0; i < collision_count; i++)
-		{
-			Collision collision = collisions[i].collision;
-
-			Physics_Collider* collider_1 = collisions[i].collider_1;
-
-			Physics_Collider* collider_2 = collisions[i].collider_2;
-
-			Map_Key key = (Map_Key)collider_1->index | (Map_Key)collider_2->index << 30 | (Map_Key)collisions[i].second << 60;
-
-			Map_Value value = 0;
-
-			if (map_get(world->collision_map, key, &value))
-			{
-				Physics_Collision* saved_collision = &world->saved_collisions[value];
-
-				double collision_impulse = saved_collision->normal_impulse;
-
-				collisions[i].normal_impulse = collision_impulse;
-
-				Physics_Body* body_1 = collider_1->body;
-
-				Physics_Body* body_2 = collider_2->body;
-
-				Vector tangent_1 = vector_left(vector_subtract(collision.point, body_1->position));
-
-				Vector tangent_2 = vector_left(vector_subtract(collision.point, body_2->position));
-
-				body_1->linear_velocity = vector_subtract(body_1->linear_velocity, vector_multiply(collision.normal, collision_impulse * body_1->inverse_linear_mass));
-
-				body_2->linear_velocity = vector_add(body_2->linear_velocity, vector_multiply(collision.normal, collision_impulse * body_2->inverse_linear_mass));
-
-				body_1->angular_velocity -= vector_dot(collision.normal, tangent_1) * collision_impulse * body_1->inverse_angular_mass;
-
-				body_2->angular_velocity += vector_dot(collision.normal, tangent_2) * collision_impulse * body_2->inverse_angular_mass;
-			}
-		}
-	}
+	world->time_warm_start = get_time() - start_time;
+	start_time = get_time();
 
 	for (int t = 0; t < PHYSICS_VELOCITY_ITERATION_COUNT; t++)
 	{
@@ -356,13 +349,9 @@ void physics_world_step(Physics_World* world, double delta_time)
 		{
 			Collision collision = collisions[i].collision;
 
-			Physics_Collider* collider_1 = collisions[i].collider_1;
+			Physics_Body* body_1 = collisions[i].body_1;
 
-			Physics_Collider* collider_2 = collisions[i].collider_2;
-
-			Physics_Body* body_1 = collider_1->body;
-
-			Physics_Body* body_2 = collider_2->body;
+			Physics_Body* body_2 = collisions[i].body_2;
 
 			Vector tangent_1 = vector_left(vector_subtract(collision.point, body_1->position));
 
@@ -477,6 +466,8 @@ void physics_world_step(Physics_World* world, double delta_time)
 			}
 		}
 	}
+    world->time_velocity = get_time() - start_time;
+	start_time = get_time();
 
 	for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
 	{
@@ -493,13 +484,9 @@ void physics_world_step(Physics_World* world, double delta_time)
 		{
 			Collision collision = collisions[i].collision;
 
-			Physics_Collider* collider_1 = collisions[i].collider_1;
+			Physics_Body* body_1 = collisions[i].body_1;
 
-			Physics_Collider* collider_2 = collisions[i].collider_2;
-
-			Physics_Body* body_1 = collider_1->body;
-
-			Physics_Body* body_2 = collider_2->body;
+			Physics_Body* body_2 = collisions[i].body_2;
 
 			Vector tangent_1 = vector_left(vector_subtract(collision.point, body_1->position));
 
@@ -580,6 +567,8 @@ void physics_world_step(Physics_World* world, double delta_time)
 			}
 		}
 	}
+    world->time_position = get_time() - start_time;
+	start_time = get_time();
 
 	if (PHYSICS_BACKFEED_POSITIONS)
 	{
@@ -620,17 +609,12 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 		for (int i = 0; i < collision_count; i++)
 		{
-			Physics_Collider* collider_1 = collisions[i].collider_1;
-
-			Physics_Collider* collider_2 = collisions[i].collider_2;
-
-			Map_Key key = (Map_Key)collider_1->index | (Map_Key)collider_2->index << 30 | (Map_Key)collisions[i].second << 60;
-
-			map_insert(world->collision_map, key, i);
+			map_insert(world->collision_map, collisions[i].key, i);
 		}
 	}
 
 	world->elapsed_time += delta_time;
+    world->time_transform = get_time() - start_time;
 }
 
 Physics_Body* physics_body_create(Physics_World* world, Physics_Body_Type type)
@@ -1021,9 +1005,9 @@ bool physics_collide(const Physics_Collider* collider_1, const Physics_Collider*
 {
 	if (collide_shapes(collider_1->world_shape, collider_2->world_shape, &collision->collision))
 	{
-		collision->collider_1 = (Physics_Collider*)collider_1;
+		collision->body_1 = (Physics_Body*)collider_1->body;
 
-		collision->collider_2 = (Physics_Collider*)collider_2;
+		collision->body_2 = (Physics_Body*)collider_2->body;
 
 		return true;
 	}
