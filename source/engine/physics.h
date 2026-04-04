@@ -4,6 +4,8 @@
 
 #include "list.h"
 
+#include "map.h"
+
 #define PHYSICS_COLLISION_COUNT_MAX 99999
 
 #define PHYSICS_CORRECTION_FACTOR 0.3
@@ -12,7 +14,7 @@
 
 #define PHYSICS_POSITION_ITERATION_COUNT 8
 
-#define PHYSICS_USE_WARM_STARTING false
+#define PHYSICS_USE_WARM_STARTING true
 
 #define PHYSICS_BACKFEED_POSITIONS true
 
@@ -68,9 +70,17 @@ struct Physics_World
 
 	int joint_count;
 
+	int collider_index;
+
 	Physics_Collision* collisions;
 
 	int collision_count;
+
+	Physics_Collision* saved_collisions;
+
+	int saved_collision_count;
+
+	Map* collision_map;
 
 	Physics_Collision_Callback collision_callback;
 
@@ -151,6 +161,8 @@ struct Physics_Collider
 	List_Node* node_in_world;
 
 	Physics_Collision_Callback collision_callback;
+
+	int index;
 
 	// not used by the engine
 

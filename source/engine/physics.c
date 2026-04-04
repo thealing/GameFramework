@@ -39,35 +39,6 @@ void physics_world_destroy(Physics_World* world)
 	free(world);
 }
 
-static int compare_collisions(const void* p, const void* q)
-{
-	Physics_Collision* a = p;
-
-	Physics_Collision* b = q;
-
-	if (a->collider_1 < b->collider_1)
-	{
-		return -1;
-	}
-
-	if (a->collider_1 > b->collider_1)
-	{
-		return 1;
-	}
-
-	if (a->collider_2 < b->collider_2)
-	{
-		return -1;
-	}
-
-	if (a->collider_2 > b->collider_2)
-	{
-		return 1;
-	}
-
-	return a->second - b->second;
-}
-
 void physics_world_step(Physics_World* world, double delta_time)
 {
 	for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
@@ -138,14 +109,26 @@ void physics_world_step(Physics_World* world, double delta_time)
 		joint->total_impulse = 0;
 	}
 
-	int collision_count_limit = imin(isquare(world->collider_list.size), PHYSICS_COLLISION_COUNT_MAX);
+	if (world->collision_map == NULL)
+	{
+		world->collision_map = map_create();
+	}
 
 	if (world->collisions == NULL)
 	{
-		world->collisions = HEAPALLOC(collision_count_limit * sizeof(Physics_Collision));
+		world->collisions = HEAPALLOC(PHYSICS_COLLISION_COUNT_MAX * sizeof(Physics_Collision));
 	}
 
-	Physics_Collision* collisions = world->collisions;
+	if (world->saved_collisions == NULL)
+	{
+		world->saved_collisions = HEAPALLOC(PHYSICS_COLLISION_COUNT_MAX * sizeof(Physics_Collision));
+	}
+
+	Physics_Collision* collisions = world->saved_collisions;
+
+	world->saved_collisions = world->collisions;
+
+	world->collisions = collisions;
 
 	int collision_count = 0;
 
@@ -215,7 +198,7 @@ void physics_world_step(Physics_World* world, double delta_time)
 					collided &= collider_2->collision_callback(collider_2, collider_1);
 				}
 
-				if (collided && !collider_1->sensor && !collider_2->sensor && collision_count + 2 <= collision_count_limit)
+				if (collided && !collider_1->sensor && !collider_2->sensor && collision_count + 2 <= PHYSICS_COLLISION_COUNT_MAX)
 				{
 					collision_count++;
 
@@ -291,17 +274,8 @@ void physics_world_step(Physics_World* world, double delta_time)
 		collisions[i].inverse_tangent_mass = 1 / (tangent_inverse_mass_1 + tangent_inverse_mass_2);
 	}
 
-	static Physics_Collision* saved_collisions;
-
-	static int saved_collision_count;
-
 	if (PHYSICS_USE_WARM_STARTING)
 	{
-		if (saved_collisions == NULL)
-		{
-			saved_collisions = HEAPALLOC(collision_count_limit * sizeof(Physics_Collision));
-		}
-
 		for (int i = 0; i < collision_count; i++)
 		{
 			Collision collision = collisions[i].collision;
@@ -310,10 +284,14 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 			Physics_Collider* collider_2 = collisions[i].collider_2;
 
-			Physics_Collision* saved_collision = bsearch(collisions + i, saved_collisions, saved_collision_count, sizeof(Physics_Collision), compare_collisions);
+			Map_Key key = (Map_Key)collider_1->index | (Map_Key)collider_2->index << 30 | (Map_Key)collisions[i].second << 60;
 
-			if (saved_collision != NULL)
+			Map_Value value = 0;
+
+			if (map_get(world->collision_map, key, &value))
 			{
+				Physics_Collision* saved_collision = &world->saved_collisions[value];
+
 				double collision_impulse = saved_collision->normal_impulse;
 
 				collisions[i].normal_impulse = collision_impulse;
@@ -364,35 +342,6 @@ void physics_world_step(Physics_World* world, double delta_time)
 			double normal_velocity = vector_dot(collision.normal, relative_velocity);
 
 			double impulse = (collisions[i].target_velocity - normal_velocity) * collisions[i].inverse_normal_mass;
-
-			if (false)
-			{
-				double inverse_mass_1 = body_1->inverse_linear_mass + body_1->inverse_angular_mass * square(vector_dot(collision.normal, tangent_1));
-
-				double inverse_mass_2 = body_2->inverse_linear_mass + body_2->inverse_angular_mass * square(vector_dot(collision.normal, tangent_2));
-
-				double damping_ratio = 0.7;     // 0.0 = bouncy, 1.0 = critical damping
-				double h = delta_time;
-
-				// 1. Calculate the Effective Mass (Constraint Inertia)
-				double effective_mass = 1.0 / (inverse_mass_1 + inverse_mass_2);
-
-				// 2. Use Effective Mass to calculate k and c
-				double omega = 2.0 * 3.1415926535 * 60; // 60Hz is VERY stiff, try 10-15 first
-				double k = effective_mass * (omega * omega);
-				double c = 2.0 * effective_mass * damping_ratio * omega;
-
-				// 3. The rest of the derivation is now physically correct
-				double softness_inv = h * (c + h * k);
-				double gamma = (softness_inv > 0.0) ? 1.0 / softness_inv : 0.0;
-				double beta = (h * k) / (c + h * k);
-
-				// 4. Denominator still uses the INVERSE mass terms + gamma
-				double impulse_denominator = (inverse_mass_1 + inverse_mass_2) + gamma;
-
-				// Note: If normal_velocity is (V2 - V1), use -normal_velocity to push BACK
-				impulse = (-normal_velocity + (beta / h) * collision.depth - gamma * collisions[i].normal_impulse) / impulse_denominator;
-			}
 
 			double total_impulse = fmax(collisions[i].normal_impulse + impulse, 0);
 
@@ -466,34 +415,6 @@ void physics_world_step(Physics_World* world, double delta_time)
 				double normal_velocity = normal_velocity_2 - normal_velocity_1;
 
 				double correction_impulse = normal_velocity / (inverse_mass_1 + inverse_mass_2);
-
-				if (false)
-				{
-					double damping_ratio = 0.2;     // 0.0 = bouncy, 1.0 = critical damping
-					double h = delta_time;
-
-					// 2. Calculate Spring Constants
-					// omega = 2 * PI * frequency
-					double omega = 2.0 * 3.1415926535 * 20;
-					double k = (inverse_mass_1 + inverse_mass_2) * square(omega);
-					double c = 2.0 * (inverse_mass_1 + inverse_mass_2) * damping_ratio * omega;
-
-					// 3. Convert to Soft Constraint Coefficients (Gamma and Beta)
-					// gamma = 1 / (h * (c + h * k))
-					// beta = h * k / (c + h * k)
-					double softness_inv = h * (c + h * k);
-					double gamma = (softness_inv > 0.0) ? 1.0 / softness_inv : 0.0;
-					double beta = (h * k) / (c + h * k);
-
-					// 4. Calculate the Impulse
-					// Note: We subtract (gamma * accumulated_impulse) to create the "Spring" force
-					double impulse_denominator = (inverse_mass_1 + inverse_mass_2) + gamma;
-
-					double relative_velocity = normal_velocity_2 - normal_velocity_1;
-
-					// The "Buddha" Soft Constraint Equation:
-					correction_impulse = (normal_velocity + (beta / h) * distance) / impulse_denominator;
-				}
 
 				body_1->linear_velocity = vector_add(body_1->linear_velocity, vector_multiply(normal, correction_impulse * body_1->inverse_linear_mass));
 
@@ -660,11 +581,18 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 	if (PHYSICS_USE_WARM_STARTING)
 	{
-		memcpy(saved_collisions, collisions, collision_count * sizeof(Physics_Collision));
+		map_clear(world->collision_map);
 
-		saved_collision_count = collision_count;
+		for (int i = 0; i < collision_count; i++)
+		{
+			Physics_Collider* collider_1 = collisions[i].collider_1;
 
-		qsort(saved_collisions, saved_collision_count, sizeof(Physics_Collision), compare_collisions);
+			Physics_Collider* collider_2 = collisions[i].collider_2;
+
+			Map_Key key = (Map_Key)collider_1->index | (Map_Key)collider_2->index << 30 | (Map_Key)collisions[i].second << 60;
+
+			map_insert(world->collision_map, key, i);
+		}
 	}
 
 	world->elapsed_time += delta_time;
@@ -908,6 +836,8 @@ Physics_Collider* physics_collider_create(Physics_Body* body, const Shape* shape
 	body->world_transform_is_dirty = true;
 
 	body->world->collider_count++;
+
+	collider->index = body->world->collider_index++;
 
 	return collider;
 }
