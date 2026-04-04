@@ -285,6 +285,10 @@ void initialize()
 
 	Physics_Body* ground = physics_body_create(s_world, PHYSICS_BODY_TYPE_STATIC);
 
+	Shape* top = create_rect_shape(vector_create(-500, 1500-10), vector_create(500, 1500+10));
+
+	physics_collider_create(ground, move_shape(top), 1.0);
+
 	Shape* bottom = create_rect_shape(vector_create(-500, -10), vector_create(500, 10));
 
 	physics_collider_create(ground, move_shape(bottom), 1.0);
@@ -306,7 +310,7 @@ void initialize()
 		collider->dynamic_friction = 1;
 	}
 
-	for (int i = 0; i < 1000 * 1; i++)
+	for (int i = 0; i < 2500 * 1; i++)
 	{
 		Physics_Body* b = physics_body_create(s_world, PHYSICS_BODY_TYPE_DYNAMIC);
 
@@ -389,6 +393,8 @@ void initialize()
 			Shape* s = shape_create_circle(vector_create(0, 0), r);
 
 			Physics_Collider* c = physics_collider_create(b, move_shape(s), 1.0);
+
+			(void)c;
 
 			physics_joint_create_world(PHYSICS_JOINT_TYPE_PIN, q, vv, b, v);
 		}
@@ -611,11 +617,11 @@ void render()
 
 	h += s + m;
 
-	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "ST: %.3f", s_step_time);
+	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "ST: %.3f", s_step_time * 1e3);
 
 	h += s + m;
 
-	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "DT: %.3f", s_delta_time);
+	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "DT: %.3f", s_delta_time * 1e3);
 
 	h += s + m;
 
