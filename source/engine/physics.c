@@ -4,11 +4,21 @@ Physics_World* physics_world_create()
 {
 	Physics_World* world = calloc(1, sizeof(Physics_World));
 
+	world->list_pool = pool_create(PHYSICS_OBJECT_CAPACITY * 3, sizeof(List_Node));
+
+	world->body_pool = pool_create(PHYSICS_OBJECT_CAPACITY, sizeof(Physics_Body));
+
+	world->collider_pool = pool_create(PHYSICS_OBJECT_CAPACITY, sizeof(Physics_Collider));
+
+	world->joint_pool = pool_create(PHYSICS_OBJECT_CAPACITY, sizeof(Physics_Joint));
+
 	return world;
 }
 
 void physics_world_destroy(Physics_World* world)
 {
+	list_set_pool(world->list_pool);
+
 	for (List_Node* body_node = world->body_list.first; body_node != NULL; )
 	{
 		Physics_Body* body = body_node->item;
@@ -35,6 +45,16 @@ void physics_world_destroy(Physics_World* world)
 
 		physics_joint_destroy(joint);
 	}
+
+	list_set_pool(NULL);
+
+	pool_destroy(world->list_pool);
+
+	pool_destroy(world->body_pool);
+
+	pool_destroy(world->collider_pool);
+
+	pool_destroy(world->joint_pool);
 
 	free(world);
 }
@@ -600,13 +620,17 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 Physics_Body* physics_body_create(Physics_World* world, Physics_Body_Type type)
 {
-	Physics_Body* body = calloc(1, sizeof(Physics_Body));
+	Physics_Body* body = pool_alloc(world->body_pool);
 
 	body->type = type;
 
 	body->world = world;
 
+	list_set_pool(world->list_pool);
+
 	body->node_in_world = list_insert_last_item(&world->body_list, body);
+
+	list_set_pool(NULL);
 
 	body->world->body_count++;
 
@@ -621,13 +645,19 @@ void physics_body_destroy(Physics_Body* body)
 
 	physics_body_destroy_all_joints(body);
 
+	list_set_pool(body->world->list_pool);
+
 	list_node_destroy(body->node_in_world);
 
-	free(body);
+	list_set_pool(NULL);
+
+	pool_free(body->world->body_pool, body);
 }
 
 void physics_body_destroy_all_colliders(Physics_Body* body)
 {
+	list_set_pool(body->world->list_pool);
+
 	for (List_Node* collider_node = body->collider_list.first; collider_node != NULL; )
 	{
 		Physics_Collider* collider = collider_node->item;
@@ -636,10 +666,14 @@ void physics_body_destroy_all_colliders(Physics_Body* body)
 
 		physics_collider_destroy(collider);
 	}
+
+	list_set_pool(NULL);
 }
 
 void physics_body_destroy_all_joints(Physics_Body* body)
 {
+	list_set_pool(body->world->list_pool);
+
 	for (List_Node* joint_node = body->joint_list.first; joint_node != NULL; )
 	{
 		Physics_Joint* joint = joint_node->item;
@@ -648,6 +682,8 @@ void physics_body_destroy_all_joints(Physics_Body* body)
 
 		physics_joint_destroy(joint);
 	}
+
+	list_set_pool(NULL);
 }
 
 Transform physics_body_get_transform(const Physics_Body* body)
@@ -809,7 +845,7 @@ void physics_body_subtract_collider_mass(Physics_Body* body, Physics_Collider* c
 
 Physics_Collider* physics_collider_create(Physics_Body* body, const Shape* shape, double density)
 {
-	Physics_Collider* collider = calloc(1, sizeof(Physics_Collider));
+	Physics_Collider* collider = pool_alloc(body->world->collider_pool);
 
 	collider->local_shape = shape_clone(shape);
 
@@ -827,9 +863,13 @@ Physics_Collider* physics_collider_create(Physics_Body* body, const Shape* shape
 
 	collider->body = body;
 
+	list_set_pool(body->world->list_pool);
+
 	collider->node_in_body = list_insert_last_item(&body->collider_list, collider);
 
 	collider->node_in_world = list_insert_last_item(&body->world->collider_list, collider);
+
+	list_set_pool(NULL);
 
 	physics_body_add_collider_mass(body, collider);
 
@@ -854,11 +894,15 @@ void physics_collider_destroy(Physics_Collider* collider)
 
 	shape_destroy(collider->world_shape);
 
+	list_set_pool(body->world->list_pool);
+
 	list_node_destroy(collider->node_in_body);
 
 	list_node_destroy(collider->node_in_world);
 
-	free(collider);
+	list_set_pool(NULL);
+
+	pool_free(body->world->collider_pool, collider);
 }
 
 void physics_collider_get_mass(const Physics_Collider* collider, Vector* center_of_mass, double* linear_mass, double* angular_mass)
@@ -872,7 +916,7 @@ void physics_collider_get_mass(const Physics_Collider* collider, Vector* center_
 
 Physics_Joint* physics_joint_create(Physics_Joint_Type type, Physics_Body* body_1, Vector local_anchor_1, Vector world_anchor_1, Physics_Body* body_2, Vector local_anchor_2, Vector world_anchor_2)
 {
-	Physics_Joint* joint = calloc(1, sizeof(Physics_Joint));
+	Physics_Joint* joint = pool_alloc(body_1->world->joint_pool);
 
 	joint->type = type;
 
@@ -888,15 +932,17 @@ Physics_Joint* physics_joint_create(Physics_Joint_Type type, Physics_Body* body_
 
 	joint->body_2 = body_2;
 
+	list_set_pool(body_1->world->list_pool);
+
 	joint->node_in_body_1 = list_insert_last_item(&body_1->joint_list, joint);
 
 	joint->node_in_body_2 = list_insert_last_item(&body_2->joint_list, joint);
 
 	joint->node_in_world = list_insert_last_item(&body_1->world->joint_list, joint);
 
-	body_1->world->joint_count++;
+	list_set_pool(NULL);
 
-	body_2->world->joint_count++;
+	body_1->world->joint_count++;
 
 	return joint;
 }
@@ -925,13 +971,17 @@ void physics_joint_destroy(Physics_Joint* joint)
 
 	joint->body_2->world->joint_count--;
 
+	list_set_pool(joint->body_1->world->list_pool);
+
 	list_node_destroy(joint->node_in_body_1);
 
 	list_node_destroy(joint->node_in_body_2);
 
 	list_node_destroy(joint->node_in_world);
 
-	free(joint);
+	list_set_pool(NULL);
+
+	pool_free(joint->body_1->world->joint_pool, joint);
 }
 
 bool physics_can_collide(const Physics_Collider* collider_1, const Physics_Collider* collider_2)

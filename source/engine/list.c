@@ -1,5 +1,29 @@
 #include "list.h"
 
+static Pool* s_list_pool;
+
+static Pool** s_list_pool_stack[LIST_POOL_STACK_SIZE];
+
+static size_t s_list_pool_stack_index;
+
+void list_set_pool(Pool* pool)
+{
+	if (pool != NULL)
+	{
+		s_list_pool_stack[s_list_pool_stack_index] = s_list_pool;
+
+		s_list_pool_stack_index++;
+
+		s_list_pool = pool;
+	}
+	else
+	{
+		s_list_pool_stack_index--;
+
+		s_list_pool = s_list_pool_stack[s_list_pool_stack_index];
+	}
+}
+
 void list_insert_first(List* list, List_Node* node_to_insert)
 {
 	if (list->size == 0)
@@ -52,7 +76,16 @@ List_Node* list_insert_last_item(List* list, const void* item_to_insert)
 
 List_Node* list_node_create(const void* item)
 {
-	List_Node* node = calloc(1, sizeof(List_Node));
+	List_Node* node;
+
+	if (s_list_pool != NULL)
+	{
+		node = pool_alloc(s_list_pool);
+	}
+	else
+	{
+		node = calloc(1, sizeof(List_Node));
+	}
 	
 	node->item = (void*)item;
 	
@@ -66,7 +99,14 @@ void list_node_destroy(List_Node* node)
 		list_node_remove(node);
 	}
 
-	free(node);
+	if (s_list_pool != NULL)
+	{
+		pool_free(s_list_pool, node);
+	}
+	else
+	{
+		free(node);
+	}
 }
 
 void list_node_insert_next(List_Node* node, List_Node* node_to_insert)

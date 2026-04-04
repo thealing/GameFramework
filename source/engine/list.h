@@ -1,6 +1,8 @@
 #pragma once
 
-#include <stdlib.h>
+#include "pool.h"
+
+#define LIST_POOL_STACK_SIZE 8
 
 typedef struct List List;
 
@@ -25,6 +27,8 @@ struct List_Node
 
 	void* item;
 };
+
+void list_set_pool(Pool* pool);
 
 void list_insert_first(List* list, List_Node* node_to_insert);
 

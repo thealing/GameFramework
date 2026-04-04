@@ -6,6 +6,8 @@
 
 #include "map.h"
 
+#define PHYSICS_OBJECT_CAPACITY 5000
+
 #define PHYSICS_COLLISION_COUNT_MAX 99999
 
 #define PHYSICS_CORRECTION_FACTOR 0.3
@@ -85,6 +87,14 @@ struct Physics_World
 	Physics_Collision_Callback collision_callback;
 
 	double elapsed_time;
+
+	Pool* list_pool;
+
+	Pool* body_pool;
+
+	Pool* collider_pool;
+
+	Pool* joint_pool;
 };
 
 struct Physics_Body
