@@ -841,11 +841,11 @@ void render()
 
 	h += s + m;
 
-	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "ST: %.3f", s_step_time * 1e3);
+	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "ST: %.2f", s_step_time * 1e3);
 
 	h += s + m;
 
-	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "DT: %.3f", s_delta_time * 1e3);
+	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "DT: %.2f", s_delta_time * 1e3);
 
 	h += s + m;
 
@@ -853,7 +853,7 @@ void render()
 
 	h += s + m;
 
-	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "E: %.2f", s_total_error);
+	graphics_draw_format_in_rect(&(Rect) { 5, s_height - h - s, 0, s_height - h }, ALIGNMENT_LEFT, "E: %.1f", s_total_error);
 
 	h += s + m;
 
