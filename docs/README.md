@@ -105,3 +105,7 @@ Assets are managed through a platform-agnostic interface with specialized loadin
 ## Technical Philosophy
 - **Zero Dependencies**: No 3rd party libraries are used, only platform-native APIs and standard C99.
 - **Encapsulation**: Platform-specific headers (like `windows.h` or `SLES/OpenSLES.h`) are hidden within the platform layer to ensure fast compilation of game code.
+
+## Demo Screenshots
+
+<img src="screen.png" />
