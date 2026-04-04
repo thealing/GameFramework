@@ -738,7 +738,7 @@ void update(double delta_time)
 		button_update(s_buttons[i]);
 	}
 }
-
+#include<time.h>
 void render()
 {
 	s_main_camera = (Rect){ 0, 0, fmax(s_width / s_height, 1) * 1100, fmax(s_height / s_width, 1) * 1100 };
@@ -813,4 +813,92 @@ void render()
 	h += s + m;
 
 	graphics_draw_format_in_rect(&(Rect) { 5, 0, 0, 20 }, ALIGNMENT_LEFT, "%3d %2d", lround(s_update_fps), lround(s_render_fps));
+
+	// --- START SNAIL TRACKER ---
+	static float math_result = -1;
+	static float cache_result = -1;
+	static float array_vec_result = -1; // Vector-only array
+	static float array_body_result = -1; // Full Physics_Body array
+	static int bench_frame_counter = 0;
+	double sum = 0;
+
+	// Run the benchmark every 60 frames so it doesn't flicker too fast
+	if (bench_frame_counter++ % 60 == 0) {
+		int test_iters = 500000; 
+		int start, end;
+		int body_count = s_world->body_count;
+		if (body_count == 0) body_count = 1; // Prevent malloc(0)
+
+											 // TEST 1: MATH (L1 Cache)
+		Physics_Body* b1 = s_world->body_list.first->item;
+		Physics_Body* b2 = s_world->body_list.first->next ? s_world->body_list.first->next->item : b1;
+
+		start = clock();
+		for (int i = 0; i < test_iters; i++) {
+			double dot = b1->linear_velocity.x * b2->linear_velocity.x + b1->linear_velocity.y * b2->linear_velocity.y;
+			double invM = b1->inverse_linear_mass + b2->inverse_linear_mass;
+			b1->linear_velocity.x += dot * invM * 0.0001; 
+		}
+		end = clock();
+		math_result = (float)(end - start) * 1000.0f / CLOCKS_PER_SEC;
+
+		// TEST 2: CACHE (RAM) - Linked List
+		start = clock();
+		for (int t = 0; t < 1000; t++) {
+			for (List_Node* n = s_world->body_list.first; n; n = n->next) {
+				sum += ((Physics_Body*)n->item)->linear_velocity.x;
+			}
+		}
+		end = clock();
+		cache_result = (float)(end - start) * 1000.0f / CLOCKS_PER_SEC;
+
+		// TEST 3: ARRAY (Vector) - Tight linear memory
+		Vector* flat_vecs = (Vector*)malloc(sizeof(Vector) * body_count);
+		int v_idx = 0;
+		for (List_Node* n = s_world->body_list.first; n; n = n->next) {
+			flat_vecs[v_idx++] = ((Physics_Body*)n->item)->linear_velocity;
+		}
+
+		start = clock();
+		for (int t = 0; t < 1000; t++) {
+			for (int i = 0; i < body_count; i++) {
+				sum += flat_vecs[i].x; 
+			}
+		}
+		end = clock();
+		array_vec_result = (float)(end - start) * 1000.0f / CLOCKS_PER_SEC;
+		free(flat_vecs);
+
+		// TEST 4: ARRAY (Full Body) - Heavy linear memory
+		Physics_Body* flat_bodies = (Physics_Body*)malloc(sizeof(Physics_Body) * body_count);
+		int b_idx = 0;
+		for (List_Node* n = s_world->body_list.first; n; n = n->next) {
+			flat_bodies[b_idx++] = *((Physics_Body*)n->item);
+		}
+
+		start = clock();
+		for (int t = 0; t < 1000; t++) {
+			for (int i = 0; i < body_count; i++) {
+				sum += flat_bodies[i].linear_velocity.x;
+			}
+		}
+		end = clock();
+		array_body_result = (float)(end - start) * 1000.0f / CLOCKS_PER_SEC;
+		free(flat_bodies);
+	}
+
+	// --- SCREEN DRAWING ---
+	graphics_draw_format_in_rect(&(Rect){ 5, 40, 0, 60 }, ALIGNMENT_LEFT, 
+		"MATH (FPU): %0.2f ms %f", (double)math_result, (double)sum);
+
+	graphics_draw_format_in_rect(&(Rect){ 5, 65, 0, 85 }, ALIGNMENT_LEFT, 
+		"LIST (PTR): %0.2f ms", (double)cache_result);
+
+	graphics_draw_format_in_rect(&(Rect){ 5, 90, 0, 110 }, ALIGNMENT_LEFT, 
+		"VEC ARRAY: %0.2f ms", (double)array_vec_result);
+
+	graphics_draw_format_in_rect(&(Rect){ 5, 115, 0, 135 }, ALIGNMENT_LEFT, 
+		"BODY ARRAY: %0.2f ms", (double)array_body_result);
+
+	// --- END SNAIL TRACKER ---
 }
