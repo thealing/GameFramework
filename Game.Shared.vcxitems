@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{e6391213-3f0d-41a1-9d44-1c23555c5814}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\config.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\geometry.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\input.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\list.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\math.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\physics.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\random.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\battle.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\bot.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\button.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\cars.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\checkbox.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\counter.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\levels.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\main.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\menu.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\objects.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\save.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\scene.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\settings.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\sounds.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\textures.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\util.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\wheels.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\config.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\data.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\geometry.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\graphics.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\image.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\input.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\list.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\macros.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\math.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\physics.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\random.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\sound.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\time.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\window.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\battle.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\bot.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\button.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\cars.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\checkbox.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\counter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\defines.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\levels.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\main.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\menu.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\objects.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\save.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\scene.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\settings.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\sounds.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\textures.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\util.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\wheels.h" />
+  </ItemGroup>
+</Project>

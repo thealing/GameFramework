@@ -1,0 +1,269 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x86">
+      <Configuration>Debug</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x86">
+      <Configuration>Release</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <RootNamespace>Game</RootNamespace>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <ProjectVersion>1.0</ProjectVersion>
+    <ProjectGuid>{8c28cc92-c09b-41cd-9783-0948dbf8ab25}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(AndroidTargetsPath)\Android.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(AndroidTargetsPath)\Android.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\temp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <AntPackage>
+      <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>rivetrival</ApplicationName>
+    </AntPackage>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <AntPackage>
+      <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>rivetrival</ApplicationName>
+      <AntTarget>release</AntTarget>
+    </AntPackage>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <AntPackage>
+      <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>rivetrival</ApplicationName>
+    </AntPackage>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <AntPackage>
+      <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>rivetrival</ApplicationName>
+      <AntTarget>release</AntTarget>
+    </AntPackage>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AntPackage>
+      <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>rivetrival</ApplicationName>
+    </AntPackage>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <AntPackage>
+      <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>rivetrival</ApplicationName>
+      <AntTarget>release</AntTarget>
+    </AntPackage>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <AntPackage>
+      <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>rivetrival</ApplicationName>
+    </AntPackage>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <AntPackage>
+      <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>rivetrival</ApplicationName>
+      <AntTarget>release</AntTarget>
+    </AntPackage>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Content Include="assets\images\booster_0.png" />
+    <Content Include="assets\images\booster_1.png" />
+    <Content Include="assets\images\booster_2.png" />
+    <Content Include="assets\images\box.png" />
+    <Content Include="assets\images\cars\dragster.png" />
+    <Content Include="assets\images\cars\garbage.png" />
+    <Content Include="assets\images\cars\garbage_lid.png" />
+    <Content Include="assets\images\cars\garbage_truck.png" />
+    <Content Include="assets\images\cars\go_cart.png" />
+    <Content Include="assets\images\cars\minibus.png" />
+    <Content Include="assets\images\cars\monster_truck.png" />
+    <Content Include="assets\images\cars\plank.png" />
+    <Content Include="assets\images\cars\timber_holder.png" />
+    <Content Include="assets\images\cars\timber_lorry.png" />
+    <Content Include="assets\images\cars\traktor.png" />
+    <Content Include="assets\images\font.png" />
+    <Content Include="assets\images\head_neck.png" />
+    <Content Include="assets\images\head_only.png" />
+    <Content Include="assets\images\laser.png" />
+    <Content Include="assets\images\levels\blades.png" />
+    <Content Include="assets\images\levels\bump.png" />
+    <Content Include="assets\images\levels\cave.png" />
+    <Content Include="assets\images\levels\desert_cave.png" />
+    <Content Include="assets\images\levels\desert_tunnel.png" />
+    <Content Include="assets\images\levels\double_bump.png" />
+    <Content Include="assets\images\levels\frowny_face.png" />
+    <Content Include="assets\images\levels\gap.png" />
+    <Content Include="assets\images\levels\neutral_face.png" />
+    <Content Include="assets\images\levels\ramp.png" />
+    <Content Include="assets\images\levels\smiley_face.png" />
+    <Content Include="assets\images\levels\triple_bump.png" />
+    <Content Include="assets\images\levels\tunnel.png" />
+    <Content Include="assets\images\lifter_base.png" />
+    <Content Include="assets\images\lifter_sensor.png" />
+    <Content Include="assets\images\mine_0.png" />
+    <Content Include="assets\images\mine_1.png" />
+    <Content Include="assets\images\mine_2.png" />
+    <Content Include="assets\images\overlay.png" />
+    <Content Include="assets\images\saw_left.png" />
+    <Content Include="assets\images\saw_right.png" />
+    <Content Include="assets\images\tire.png" />
+    <Content Include="assets\images\ui\arrow_disabled.png" />
+    <Content Include="assets\images\ui\arrow_pressed.png" />
+    <Content Include="assets\images\ui\arrow_released.png" />
+    <Content Include="assets\images\ui\back_pressed.png" />
+    <Content Include="assets\images\ui\back_released.png" />
+    <Content Include="assets\images\ui\checked.png" />
+    <Content Include="assets\images\ui\left_pressed.png" />
+    <Content Include="assets\images\ui\left_released.png" />
+    <Content Include="assets\images\ui\pause_pressed.png" />
+    <Content Include="assets\images\ui\pause_released.png" />
+    <Content Include="assets\images\ui\play_pressed.png" />
+    <Content Include="assets\images\ui\play_released.png" />
+    <Content Include="assets\images\ui\restart_pressed.png" />
+    <Content Include="assets\images\ui\restart_released.png" />
+    <Content Include="assets\images\ui\right_pressed.png" />
+    <Content Include="assets\images\ui\right_released.png" />
+    <Content Include="assets\images\ui\settings_pressed.png" />
+    <Content Include="assets\images\ui\settings_released.png" />
+    <Content Include="assets\images\ui\star_opaque.png" />
+    <Content Include="assets\images\ui\star_translucent.png" />
+    <Content Include="assets\images\ui\unchecked.png" />
+    <Content Include="assets\images\wheels\cycle.png" />
+    <Content Include="assets\images\wheels\medium.png" />
+    <Content Include="assets\images\wheels\monster.png" />
+    <Content Include="assets\images\wheels\small.png" />
+    <Content Include="assets\sounds\airhorn.mp3" />
+    <Content Include="assets\sounds\applause.mp3" />
+    <Content Include="assets\sounds\beep.mp3" />
+    <Content Include="assets\sounds\blip.mp3" />
+    <Content Include="assets\sounds\click.mp3" />
+    <Content Include="assets\sounds\click2.mp3" />
+    <Content Include="assets\sounds\explosion.mp3" />
+    <Content Include="assets\sounds\intro.mp3" />
+    <Content Include="assets\sounds\laser.mp3" />
+    <Content Include="assets\sounds\music.mp3" />
+    <Content Include="assets\sounds\saw.mp3" />
+    <Content Include="assets\sounds\water.mp3" />
+    <Content Include="platform\android\game.keystore">
+      <Link>game.keystore</Link>
+    </Content>
+    <Content Include="platform\android\res\values\strings.xml">
+      <Link>res\values\strings.xml</Link>
+    </Content>
+    <Content Include="platform\android\res\values\styles.xml">
+      <Link>res\values\styles.xml</Link>
+    </Content>
+    <AntBuildXml Include="platform\android\build.xml">
+      <Link>build.xml</Link>
+    </AntBuildXml>
+    <AndroidManifest Include="platform\android\AndroidManifest.xml">
+      <Link>AndroidManifest.xml</Link>
+    </AndroidManifest>
+    <AntProjectPropertiesFile Include="platform\android\project.properties">
+      <Link>project.properties</Link>
+    </AntProjectPropertiesFile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Game.NativeActivity.vcxproj">
+      <Project>{2c5e86f3-4995-4cc2-922b-31fade1ed91c}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(AndroidTargetsPath)\Android.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
