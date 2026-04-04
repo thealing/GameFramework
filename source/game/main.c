@@ -28,6 +28,19 @@ static double s_update_fps;
 
 static double s_render_fps;
 
+enum
+{
+	BUTTON_PAUSE,
+
+	BUTTON_STEP,
+
+	BUTTON_RESTART,
+
+	BUTTON_COUNT
+};
+
+static Button* s_buttons[BUTTON_COUNT];
+
 int main()
 {
 	void* window = NULL;
@@ -71,6 +84,19 @@ int main()
 	s_zoom = 1;
 
 	s_mouse_down = -1;
+
+	s_zoom = 0.6;
+
+	s_view_position.x += 300;
+	s_view_position.y -= 200;
+
+	config_set_value(CONFIG_KEY_TOUCH_ZOOM_ENABLED, (void*)true);
+
+	s_buttons[BUTTON_PAUSE] = button_create("PAUSE", vector_create(0, 0), vector_create(140, 50));
+
+	s_buttons[BUTTON_STEP] = button_create("STEP", vector_create(0, 0), vector_create(140, 50));
+	
+	s_buttons[BUTTON_RESTART] = button_create("RESTART", vector_create(0, 0), vector_create(140, 50));
 
 	while (window_is_open())
 	{
@@ -151,7 +177,18 @@ int main()
 
 								s_mouse_position = mouse_position;
 
-								s_view_position = vector_add(s_view_position, vector_divide(vector_scale(mouse_delta, s_camera.max), s_zoom));
+								bool movement_disabled = false;
+
+								for (int i = 0; i < BUTTON_COUNT; i++)
+								{
+									movement_disabled |= s_buttons[i]->held;
+								}
+
+								if (!movement_disabled)
+								{
+									s_view_position = vector_add(s_view_position, vector_divide(vector_scale(mouse_delta, s_camera.max), s_zoom));
+								}
+
 							}
 						}
 
@@ -291,6 +328,13 @@ int main()
 
 void initialize()
 {
+	random_set_seed(1);
+
+	if (s_world != NULL)
+	{
+		physics_world_destroy(s_world);
+	}
+
 	s_world = physics_world_create();
 
 	s_world->gravity.y = -800;
@@ -474,13 +518,6 @@ void initialize()
 		}
 	}
 
-	s_zoom = 0.6;
-
-	s_view_position.x += 300;
-	s_view_position.y -= 200;
-
-	config_set_value(CONFIG_KEY_TOUCH_ZOOM_ENABLED, (void*)true);
-
 	int body_count = 0;
 
 	for (List_Node* node = s_world->body_list.first; node != NULL; node = node->next)
@@ -540,9 +577,18 @@ void update(double delta_time)
 
 	step |= input_is_key_down(WINDOW_KEY_SPACE);
 
-	if (input_is_key_pressed(WINDOW_KEY_ENTER))
+	step |= s_buttons[BUTTON_STEP]->clicked;
+
+	if (input_is_key_pressed(WINDOW_KEY_ENTER) || s_buttons[BUTTON_PAUSE]->clicked)
 	{
 		running ^= true;
+
+		s_buttons[BUTTON_PAUSE]->text = running ? "PAUSE" : "RESUME";
+	}
+
+	if (s_buttons[BUTTON_RESTART]->clicked)
+	{
+		initialize();
 	}
 
 	if (step)
@@ -587,6 +633,11 @@ void update(double delta_time)
 
 		s_total_velocity += fabs(body->angular_velocity);
 	}
+
+	for (int i = 0; i < BUTTON_COUNT; i++)
+	{
+		button_update(s_buttons[i]);
+	}
 }
 
 void render()
@@ -610,6 +661,17 @@ void render()
 	graphics_load_transform();
 
 	graphics_set_camera(&(Rect){ 0, 0, s_width, s_height });
+
+	s_buttons[BUTTON_PAUSE]->position = vector_create(s_width - 90, s_height - 55);
+
+	s_buttons[BUTTON_STEP]->position = vector_create(s_width - 90, s_height - 125);
+
+	s_buttons[BUTTON_RESTART]->position = vector_create(s_width - 90, s_height - 195);
+
+	for (int i = 0; i < BUTTON_COUNT; i++)
+	{
+		button_render(s_buttons[i]);
+	}
 
 	set_texture_and_color(NULL, &(Color){ 1.0, 1.0, 0.0, 1.0 });
 

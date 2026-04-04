@@ -22,6 +22,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\math.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\physics.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\random.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\game\button.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\game\main.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\game\util.c" />
   </ItemGroup>
@@ -41,6 +42,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\sound.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\time.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\window.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\game\button.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\game\main.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\game\util.h" />
   </ItemGroup>

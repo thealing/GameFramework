@@ -12,6 +12,8 @@
 
 #include "util.h"
 
+#include "button.h"
+
 int main();
 
 void initialize();
