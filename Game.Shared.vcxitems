@@ -18,6 +18,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\geometry.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\input.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\list.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\map.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\math.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\physics.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)source\engine\random.c" />
@@ -33,6 +34,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\input.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\list.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\macros.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\map.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\math.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\physics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)source\engine\random.h" />
