@@ -1,5 +1,4 @@
 #include "physics.h"
-#include "engine/time.h"
 
 Physics_World* physics_world_create()
 {
@@ -77,8 +76,6 @@ void physics_world_destroy(Physics_World* world)
 
 void physics_world_step(Physics_World* world, double delta_time)
 {
-	double start_time = get_time();
-
 	for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
 	{
 		Physics_Body* body = body_node->item;
@@ -127,9 +124,6 @@ void physics_world_step(Physics_World* world, double delta_time)
 
 		body->angular_force = 0.0;
 	}
-
-	world->time_integration = get_time() - start_time;
-	start_time = get_time();
 
 	for (List_Node* collider_node = world->collider_list.first; collider_node != NULL; )
 	{
@@ -335,14 +329,6 @@ void physics_world_step(Physics_World* world, double delta_time)
 		}
 	}
 
-	world->time_collision = get_time() - start_time;
-	start_time = get_time();
-
-	world->collision_count = collision_count;
-
-	world->time_warm_start = get_time() - start_time;
-	start_time = get_time();
-
 	for (int t = 0; t < PHYSICS_VELOCITY_ITERATION_COUNT; t++)
 	{
 		for (int i = 0; i < collision_count; i++)
@@ -466,8 +452,6 @@ void physics_world_step(Physics_World* world, double delta_time)
 			}
 		}
 	}
-    world->time_velocity = get_time() - start_time;
-	start_time = get_time();
 
 	for (List_Node* body_node = world->body_list.first; body_node != NULL; body_node = body_node->next)
 	{
@@ -567,8 +551,6 @@ void physics_world_step(Physics_World* world, double delta_time)
 			}
 		}
 	}
-    world->time_position = get_time() - start_time;
-	start_time = get_time();
 
 	if (PHYSICS_BACKFEED_POSITIONS)
 	{
@@ -614,7 +596,6 @@ void physics_world_step(Physics_World* world, double delta_time)
 	}
 
 	world->elapsed_time += delta_time;
-    world->time_transform = get_time() - start_time;
 }
 
 Physics_Body* physics_body_create(Physics_World* world, Physics_Body_Type type)

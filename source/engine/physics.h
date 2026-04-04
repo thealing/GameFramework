@@ -88,13 +88,6 @@ struct Physics_World
 
 	double elapsed_time;
 
-    double time_integration;
-    double time_collision;
-    double time_warm_start;
-    double time_velocity;
-    double time_position;
-    double time_transform;
-
 	Pool* list_pool;
 
 	Pool* body_pool;
