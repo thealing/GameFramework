@@ -159,41 +159,47 @@ int main()
 					}
 					case WINDOW_EVENT_TOUCH_DOWN:
 					{
-						double width = window_get_width(window);
+						if (window != NULL)
+						{
+							double width = window_get_width(window);
 
-						double height = window_get_height(window);
+							double height = window_get_height(window);
 
-						Touch* touch = input_get_touch(event.touch_event.index);
+							Touch* touch = input_get_touch(event.touch_event.index);
 
-						touch->x = event.touch_event.x / width;
+							touch->x = event.touch_event.x / width;
 
-						touch->y = 1 - event.touch_event.y / height;
+							touch->y = 1 - event.touch_event.y / height;
 
-						touch->down = true;
+							touch->down = true;
 
-						s_mouse_down = event.touch_event.index;
+							s_mouse_down = event.touch_event.index;
 
-						s_mouse_position = vector_create(touch->x, touch->y);
+							s_mouse_position = vector_create(touch->x, touch->y);
+						}
 
 						break;
 					}
 					case WINDOW_EVENT_TOUCH_UP:
 					{
-						double width = window_get_width(window);
-
-						double height = window_get_height(window);
-
-						Touch* touch = input_get_touch(event.touch_event.index);
-
-						touch->x = event.touch_event.x / width;
-
-						touch->y = 1 - event.touch_event.y / height;
-
-						touch->down = false;
-
-						if (event.touch_event.index == s_mouse_down)
+						if (window != NULL)
 						{
-							s_mouse_down = -1;
+							double width = window_get_width(window);
+
+							double height = window_get_height(window);
+
+							Touch* touch = input_get_touch(event.touch_event.index);
+
+							touch->x = event.touch_event.x / width;
+
+							touch->y = 1 - event.touch_event.y / height;
+
+							touch->down = false;
+
+							if (event.touch_event.index == s_mouse_down)
+							{
+								s_mouse_down = -1;
+							}
 						}
 
 						break;
@@ -232,11 +238,14 @@ int main()
 				}
 			}
 
-			s_width = window_get_width(window);
+			if (window != NULL)
+			{
+				s_width = window_get_width(window);
 
-			s_height = window_get_height(window);
+				s_height = window_get_height(window);
 
-			update(update_delta);
+				update(update_delta);
+			}
 
 			last_update_time = fmax(last_update_time + update_delta, current_time - max_latency);
 
@@ -245,11 +254,14 @@ int main()
 
 		if (current_time > last_render_time + render_delta)
 		{
-			graphics_clear(&(Color){ 0.0, 0.0, 0.0, 1.0 });
+			if (window != NULL)
+			{
+				graphics_clear(&(Color){ 0.0, 0.0, 0.0, 1.0 });
 
-			render();
+				render();
 
-			graphics_display();
+				graphics_display();
+			}
 
 			last_render_time = current_time;
 
