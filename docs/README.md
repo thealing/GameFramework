@@ -39,13 +39,20 @@ To initialize a game, follow the established configuration and event-driven sequ
     }
     ```
 
+### Android Deployment
+Before deploying to Android, update the project files in `platform/android/`:
+- Change the `package` attribute in `AndroidManifest.xml`.
+- Change the `app_name` value in `res/values/strings.xml`.
+- Replace the provided `game.keystore` with your own keystore.
+- Enter the signing credentials in `build.xml` (key.* properties).
+
 ## Overview
 The framework is designed with a strict separation between core engine logic and platform-specific backends. This allows for seamless cross-platform development while maintaining efficiency and a minimal footprint without any 3rd party library dependencies.
 
 ### Project Structure
 - **`source/game/`**: High-level application code utilizing the engine's API.
 - **`source/engine/`**: Platform-independent core modules for physics, graphics, geometry, input, and memory management.
-- **`platform/`**: Native implementations for Windows (Win32/DirectShow/OpenGL) and Android (NativeActivity/OpenSL ES/OpenGL ES).
+- **`platform/`**: Native implementations for Windows and Android.
 
 ## Core Features
 
@@ -61,8 +68,8 @@ A custom rigid-body physics simulator built from scratch:
 
 ### Graphics & Rendering
 A specialized 2D rendering API supporting hardware acceleration:
-- **Windows Backend**: Desktop OpenGL using fixed-function pipeline for maximum compatibility.
-- **Android Backend**: OpenGL ES 1.1 utilizing vertex arrays.
+- **Windows Backend**: Desktop **OpenGL** using fixed-function pipeline for maximum compatibility.
+- **Android Backend**: **OpenGL ES 1.1** utilizing vertex arrays.
 - **Primitives**: High-level support for segments, circles, polygons, and rectangles with fill/outline options.
 - **Transform Stack**: Full support for hierarchical transformations (Translate, Rotate, Scale) using internal matrix management.
 - **State Stack**: Push/pop graphics states including colors, textures, and line properties.
