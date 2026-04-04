@@ -1,5 +1,7 @@
 #include "main.h"
 
+#define MAX_SIZE 10
+
 static Physics_World* s_world;
 
 static double s_width;
@@ -53,7 +55,7 @@ enum
 
 static Button* s_buttons[BUTTON_COUNT];
 
-static int s_size = 2;
+static int s_size = 8;
 
 static bool s_running = true;
 
@@ -78,7 +80,7 @@ Vector get_mouse_world_position()
 
 double get_wsize()
 {
-	return pow(s_size / 3.0, 1.5);
+	return pow(s_size / (double)MAX_SIZE, 1.7);
 }
 
 int main()
@@ -121,12 +123,13 @@ int main()
 
 	window_create(1280, 720);
 
-	s_zoom = .9;
+	s_zoom = 0.7;
 
 	s_mouse_down = -1;
 
-	s_view_position.x += 300;
-	s_view_position.y -= 200;
+	s_view_position.x += 180;
+
+	s_view_position.y -= 190;
 
 	config_set_value(CONFIG_KEY_TOUCH_ZOOM_ENABLED, (void*)true);
 
@@ -136,7 +139,7 @@ int main()
 	
 	s_buttons[BUTTON_RESTART] = button_create("RESTART", vector_create(0, 0), vector_create(140, 50));
 
-	s_buttons[BUTTON_SIZE] = button_create("SMALL", vector_create(0, 0), vector_create(140, 50));
+	s_buttons[BUTTON_SIZE] = button_create("RESIZE", vector_create(0, 0), vector_create(140, 50));
 
 	s_buttons[BUTTON_WS] = button_create("WS", vector_create(0, 0), vector_create(60, 50));
 
@@ -498,7 +501,7 @@ void initialize()
 		collider->dynamic_friction = 1;
 	}
 
-	for (int i = 0; i < 2500 * wsize2; i++)
+	for (int i = 0; i < 2500 * pow(wsize2, 1.2); i++)
 	{
 		Physics_Body* b = physics_body_create(s_world, PHYSICS_BODY_TYPE_DYNAMIC);
 
@@ -536,7 +539,7 @@ void initialize()
 	{
 		double l = 10, h = 2, r = 20;
 
-		Vector v = vector_create(0, 1400*wsize);
+		Vector v = vector_create(0, (1400+r)*wsize-r);
 
 		Vector vv = vector_create(0, 0);
 
@@ -688,7 +691,7 @@ void update(double delta_time)
 
 		s_size++;
 
-		if (s_size == 4)
+		if (s_size > MAX_SIZE)
 		{
 			s_size = 1;
 		}
@@ -700,25 +703,6 @@ void update(double delta_time)
 		s_view_position = vector_multiply(s_view_position, d);
 
 		initialize();
-	}
-
-	switch (s_size)
-	{
-		case 1:
-		{
-			s_buttons[BUTTON_SIZE]->text = "SMALL";
-			break;
-		}
-		case 2:
-		{
-			s_buttons[BUTTON_SIZE]->text = "MEDIUM";
-			break;
-		}
-		case 3:
-		{
-			s_buttons[BUTTON_SIZE]->text = "LARGE";
-			break;
-		}
 	}
 
 	if (s_grabbed_body == NULL && s_mouse_joint != NULL)
