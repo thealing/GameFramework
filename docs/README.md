@@ -4,7 +4,7 @@ A high-performance, cross-platform 2D game framework written in C99, featuring a
 
 ## Getting Started
 
-To initialize a game, follow the established configuration and event-driven sequence:
+Initialize the engine by the following configuration and event-driven lifecycle:
 
 1. **Configure Application**: Before creating the window, set key application metadata using the `config` system.
     ```c
@@ -21,20 +21,22 @@ To initialize a game, follow the established configuration and event-driven sequ
         Window_Event event;
         while (window_poll_event(&event)) {
             if (event.type == WINDOW_EVENT_WINDOW_CREATED) {
-                // Initialize graphics context and load initial assets
                 graphics_init(event.state_event.window);
-                texture_create_from_file(&my_texture, "asset.png");
+                // load textures...
             }
-            // Handle input events...
+            if (event.type == WINDOW_EVENT_WINDOW_DESTROYED) {
+                graphics_uninit(event.state_event.window);
+            }
+            // handle events...
         }
 
-        // Logic Update
+        // Update
         input_update();
         physics_world_step(world, delta_time, true, true);
 
-        // Rendering
+        // Render
         graphics_clear(&clear_color);
-        // draw calls...
+        // draw scene...
         graphics_display();
     }
     ```
@@ -56,21 +58,19 @@ The core engine logic and platform-specific backends are separated, making the g
 
 ### 2D Physics Engine
 A custom rigid-body physics simulator built from scratch:
-- **Solver**: Dual-stage impulse-based velocity solver and position correction. Features **Warm Starting** for improved stability across frames.
+- **Solver**: Dual-stage impulse-based velocity solver and position correction. Uses **Warm Starting** for improved stability.
 - **Broad Phase**: Efficient **Sweep and Prune** algorithm and **AABB Test**.
 - **Narrow Phase**: Robust collision detection using the **Separating Axis Theorem (SAT)** for polygons and specialized routines for circles and segments.
 - **Contact Manifolds**: Multiple contact points are generated as necessary for more accurate simulation and jitter-free stacking.
-- **Body Types**: Supports **Dynamic** (simulated), **Kinematic** (user controlled), and **Static** (unmovable) bodies.
-- **Joints**: **Fixed** and **Pin (Revolute)** joints with stability correction.
 - **Automatic Mass**: Physical properties (centroid, linear mass, inertia) are automatically calculated based on collider geometry and density.
 - **Filtering**: Mask and group-based collision filtering with sensor support (callbacks without physical resolution).
 
 ### Graphics & Rendering
-A specialized 2D rendering API supporting hardware acceleration:
-- **Windows Backend**: Desktop **OpenGL** using fixed-function pipeline for maximum compatibility.
+A simple 2D rendering API for maximum compatibility:
+- **Windows Backend**: Desktop **OpenGL** using fixed-function pipeline.
 - **Android Backend**: **OpenGL ES 1.1** utilizing vertex arrays.
-- **Primitives**: High-level support for segments, circles, polygons, and rectangles with fill/outline options.
-- **Transform Stack**: Full support for hierarchical transformations (Translate, Rotate, Scale) using internal matrix management.
+- **Primitives**: High-level draw functions for segments, circles, polygons and rectangles.
+- **Transform Stack**: Full support for hierarchical transformations (Translate, Rotate, Scale).
 - **State Stack**: Push/pop graphics states including colors, textures, and line properties.
 - **Typography**: Sprite-font system with alignment and formatted string support.
 
@@ -87,7 +87,7 @@ Multi-platform audio engine for low-latency playback:
 ## Systems Architecture
 
 ### Window System
-The framework employs a unified event-driven windowing system that abstracts platform-specific lifecycles:
+The framework provides a unified event-driven windowing system that abstracts platform-specific lifecycles:
 - **Event Loop**: Use `window_poll_event` to handle a variety of events including touch/mouse input, key presses, and window state changes (Resumed, Paused, Created, Destroyed).
 - **Unified Input**: Mouse clicks are mapped to `WINDOW_EVENT_TOUCH_*` events, providing a consistent interface for both desktop and mobile platforms.
 - **Platform Backends**: 
