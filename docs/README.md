@@ -54,7 +54,7 @@ The core engine logic and platform-specific backends are separated, making the g
 - **`source/engine/`**: Platform-independent core modules for physics, graphics, geometry, input, and memory management.
 - **`platform/`**: Native implementations for Windows and Android.
 
-## Core Features
+## Components
 
 ### 2D Physics Engine
 A custom rigid-body physics simulator built from scratch:
@@ -64,8 +64,9 @@ A custom rigid-body physics simulator built from scratch:
 - **Contact Manifolds**: Multiple contact points are generated as necessary for more accurate simulation and jitter-free stacking.
 - **Automatic Mass**: Physical properties (centroid, linear mass, inertia) are automatically calculated based on collider geometry and density.
 - **Filtering**: Mask and group-based collision filtering with sensor support (callbacks without physical resolution).
+- **Memory Pools**: Cache-friendly allocation of the physics objects.
 
-### Graphics & Rendering
+### Graphics
 A simple 2D rendering API for maximum compatibility:
 - **Windows Backend**: Desktop **OpenGL** using fixed-function pipeline.
 - **Android Backend**: **OpenGL ES 1.1** utilizing vertex arrays.
@@ -80,14 +81,8 @@ Multi-platform audio engine for low-latency playback:
 - **Android**: Native integration with **OpenSL ES** for optimized mobile performance.
 - **Features**: Volume control, pausing, resuming, and seeking functionality.
 
-### Utilities & Memory
-- **Memory Pools**: Cache-friendly, object-pool based allocators for engine-critical objects (Bodies, Colliders, Joints).
-- **Data Structures**: Implementations of linked lists, maps, and geometric primitives (Vectors, Transforms, Shapes).
-
-## Systems Architecture
-
 ### Window System
-The framework provides a unified event-driven windowing system that abstracts platform-specific lifecycles:
+A unified event-driven windowing system that abstracts platform-specific lifecycles:
 - **Event Loop**: Use `window_poll_event` to handle a variety of events including touch/mouse input, key presses, and window state changes (Resumed, Paused, Created, Destroyed).
 - **Unified Input**: Mouse clicks are mapped to `WINDOW_EVENT_TOUCH_*` events, providing a consistent interface for both desktop and mobile platforms.
 - **Platform Backends**: 
