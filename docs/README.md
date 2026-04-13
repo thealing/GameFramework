@@ -82,7 +82,7 @@ A simple 2D rendering API for maximum compatibility:
 ### Audio System
 Multi-platform audio engine for consistent sound effects:
 - **Asynchronous Nature**: All sounds are played in the background without halting the application. 
-- **Concurrent Playback**: Multiple audio streams can be played simultaneously.
+- **Concurrent Playback Support**: Multiple audio streams can be played simultaneously.
 - **Sound Control**: Granular volume control, pause/resume, and seeking functionality is available.
 
 ### Window System
