@@ -100,11 +100,11 @@ A unified event-driven windowing system that abstracts away platform-specific li
 ### Android
 - Rendering API: **OpenGL ES 1.1** utilizing vertex arrays.
 - Audio Playback: Integrated with **OpenSL ES** for optimized mobile performance.
-- Windowing System: Background `NativeActivity` callbacks forward the events to the game.
+- Windowing System: Asynchronous `NativeActivity` implementation that forwards lifecycle and input events to the game.
 - Asset Management: Asset files are read directly from the APK using `AAssetManager`.
 
 ## Technical Philosophy
-- **Zero Dependencies**: No 3rd party libraries are used, only platform-native APIs and standard C99.
+- **Zero Dependencies**: No third-party libraries are used, only platform-native APIs and standard C99.
 - **Encapsulation**: Platform-specific headers (like `windows.h` or `GLES/egl.h`) are hidden within the platform layer to ensure fast compilation of game code.
 
 ## Demo Screenshots
