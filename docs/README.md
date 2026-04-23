@@ -5,7 +5,7 @@ A high-performance, cross-platform 2D game framework written in C99.
 ## Getting Started
 
 ### The Game Loop
-The framework manages input and state changes via a background event queue. The game can process new events in each frame, then proceed with the update and rendering phases, like in this simplified example:
+The framework collects input and state changes using a background event queue. The game can process new events in each frame, then proceed with the update and rendering phases, like in this simplified example:
 ```c
 while (window_is_open()) {
     Window_Event event;
