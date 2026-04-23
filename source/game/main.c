@@ -725,9 +725,9 @@ void update(double delta_time)
 	if (input_is_key_pressed(WINDOW_KEY_ENTER) || s_buttons[BUTTON_PAUSE]->clicked)
 	{
 		s_running ^= true;
-
-		s_buttons[BUTTON_PAUSE]->text = s_running ? "PAUSE" : "RESUME";
 	}
+
+	s_buttons[BUTTON_PAUSE]->text = s_running ? "PAUSE" : "RESUME";
 
 	if (s_buttons[BUTTON_RESTART]->clicked)
 	{
