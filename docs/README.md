@@ -5,7 +5,7 @@ A high-performance, cross-platform 2D game framework written in C99.
 ## Getting Started
 
 ### The Game Loop
-The framework collects input and state changes using an internal event queue. The game can poll available events at the start of each frame, then proceed with the update and rendering phases, like in this simplified example:
+The framework uses an internal event queue to collect input and state changes. The game can poll for available events at the start of each frame, then proceed with the update and rendering phases, like in this simplified example:
 ```c
 while (window_is_open()) {
     Window_Event event;
@@ -81,7 +81,7 @@ A simple 2D rendering API for maximum compatibility:
 
 ### Audio System
 Multi-platform audio engine for consistent sound effects:
-- **Asynchronous Nature**: All sounds are played in the background without halting the application. 
+- **Asynchronous Nature**: All sounds are played in the background without pausing the application.
 - **Concurrent Playback Support**: Multiple audio streams can be played simultaneously.
 - **Sound Control**: Granular volume control, pause/resume, and seeking functionalities are available.
 
